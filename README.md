@@ -124,9 +124,32 @@ skills/
     ├── SKILL.md
     └── references/
         └── template.html            # HTML template for wiki
+
+eval/                                 # 🧪 Skill evaluation framework
+├── run-eval.sh                       # Entry point
+├── fixture-app/                      # Test codebase (Flask task API)
+└── scenarios/                        # One per skill (setup + validate + checklist)
 ```
 
 > 📌 Each skill is just a `SKILL.md` file — that's what Cursor reads to know how the skill works. No install, no config, just copy and go!
+
+## 🧪 Evaluating Skills
+
+Want to make sure a skill runs correctly and produces consistent output? We have an evaluation framework for that!
+
+```bash
+# 1. Set up a test scenario
+bash eval/run-eval.sh review-diff
+
+# 2. Open eval/sandbox/ in Cursor and run the skill
+
+# 3. Validate the output
+bash eval/run-eval.sh review-diff validate
+```
+
+Available scenarios: `review-diff`, `walkthrough`, `create-wiki`, `incremental-implementation`
+
+👉 See [eval/README.md](eval/README.md) for the full step-by-step guide.
 
 ## 🚀 Coming Soon
 

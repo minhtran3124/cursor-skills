@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 
+# Cursor IDE local skills
+.cursor/
+
 # Eval sandbox (recreated per run)
 eval/sandbox/
 
