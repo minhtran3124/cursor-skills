@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Eval sandbox (recreated per run)
+eval/sandbox/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
