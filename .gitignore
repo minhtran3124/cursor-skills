@@ -8,6 +8,9 @@ Thumbs.db
 # Eval sandbox (recreated per run)
 eval/sandbox/
 
+# Claude skill
+.claude/
+
 # Python
 __pycache__/
 *.pyc
@@ -18,3 +21,4 @@ __pycache__/
 .idea/
 *.swp
 *~
+.pytest_cache/

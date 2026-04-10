@@ -1,10 +1,12 @@
-# 🎯 Cursor Skills
+# 🎯 Cursor Skills & Claude Code Agent Teams
 
-A collection of custom AI skills for [Cursor IDE](https://cursor.com). These skills teach Cursor's AI agent how to perform specific tasks better.
+A collection of reusable AI skills for [Cursor IDE](https://cursor.com) and [Claude Code](https://claude.com/claude-code), plus an agent team system for coordinated build → review → document workflows.
 
-> 💡 **New to AI skills?** Think of them as "cheat sheets" you give to Cursor's AI — each skill tells it exactly how to do a specific job well.
+> 💡 **What are skills?** Think of them as "cheat sheets" you give to an AI — each skill tells it exactly how to do a specific job well. They work in Cursor IDE (as slash commands) and in Claude Code (as reusable methodology that agents reference).
 
 ## 📦 What's Inside
+
+### Cursor IDE Skills (`skills/`)
 
 | Skill | What it does |
 |-------|-------------|
@@ -13,7 +15,27 @@ A collection of custom AI skills for [Cursor IDE](https://cursor.com). These ski
 | 🧱 `incremental-implementation` | Builds features step-by-step, checking with you before each chunk |
 | 📖 `create-wiki` | Generates a single-page HTML wiki documenting your entire project |
 
-## ⚡ Quick Start
+### Claude Code Skills (`.claude/skills/`)
+
+Reusable methodology extracted from the skills above — can be used standalone or composed by agents:
+
+| Skill | What it does |
+|-------|-------------|
+| 🔨 `incremental-build` | Chunk breakdown, progress tracking, implementation methodology |
+| 🔍 `code-review` | Review structure, C4 diagrams, Mermaid guidelines, feedback format |
+| 📖 `wiki-generator` | Codebase investigation, HTML wiki generation, content writing guidelines |
+
+### Claude Code Agent Team (`.claude/agents/`)
+
+Thin agent wrappers that reference skills and add team coordination:
+
+| Agent | Uses skill | Team role |
+|-------|-----------|-----------|
+| 🔨 `builder` | `incremental-build` | Implements plan, coordinates with lead for approval, notifies reviewer |
+| 🔍 `reviewer` | `code-review` | Reviews changes, sends feedback to builder, re-review loop |
+| 📖 `documenter` | `wiki-generator` | Generates wiki after review passes, notifies lead |
+
+## ⚡ Quick Start — Cursor IDE
 
 ### Step 1 — Clone this repo
 
@@ -24,7 +46,6 @@ git clone <this-repo-url>
 ### Step 2 — Copy skills into your project
 
 ```bash
-# Example: add the walkthrough skill to your project
 mkdir -p your-project/.cursor/skills
 cp -r skills/walkthrough your-project/.cursor/skills/
 ```
@@ -41,7 +62,46 @@ Open your project in Cursor, then type a command in the AI chat:
 
 For `incremental-implementation`, just describe a plan and ask Cursor to "implement this step by step".
 
+## ⚡ Quick Start — Claude Code Agent Team
+
+### Step 1 — Copy agent config into your project
+
+```bash
+cp -r .claude/skills   your-project/.claude/skills
+cp -r .claude/agents   your-project/.claude/agents
+cp    .claude/settings.json your-project/.claude/settings.json
+```
+
+Or install globally:
+
+```bash
+cp -r .claude/skills ~/.claude/skills
+cp -r .claude/agents ~/.claude/agents
+```
+
+### Step 2 — Create a plan
+
+Write a `plan.md` describing what you want to build (see `plan.md` in this repo for an example).
+
+### Step 3 — Start the team in Claude Code
+
+```bash
+cd your-project
+claude
+```
+
+Then paste a workflow prompt from `.claude/agents/WORKFLOWS.md`, for example:
+
+```
+Create an agent team to implement and review a feature.
+Plan: see plan.md
+Spawn "builder" using the builder agent type. Require plan approval.
+Spawn "reviewer" using the reviewer agent type.
+```
+
 ## 🔄 How It Works
+
+### Cursor Skills
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -65,6 +125,39 @@ For `incremental-implementation`, just describe a plan and ask Cursor to "implem
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Claude Code Agent Team
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    LEAD (you + Claude Code)              │
+│   Creates plan, manages task list, approves chunks      │
+└─────┬──────────────┬──────────────┬─────────────────────┘
+      │              │              │
+      ▼              ▼              ▼
+┌──────────┐  ┌──────────┐  ┌──────────────┐
+│ BUILDER  │←→│ REVIEWER │  │  DOCUMENTER  │
+│          │  │          │  │              │
+│ skill:   │  │ skill:   │  │ skill:       │
+│ incremen │  │ code-    │  │ wiki-        │
+│ tal-build│  │ review   │  │ generator    │
+│          │  │          │  │              │
+│ output:  │  │ output:  │  │ output:      │
+│ progress │  │ .review/ │  │ .docs/       │
+│ .md      │  │ review.md│  │ index.html   │
+└──────────┘  └──────────┘  └──────────────┘
+```
+
+## 📄 Generated Files
+
+These files are **created by skills/agents during execution** — they are not source code you edit by hand:
+
+| File | Created by | Purpose |
+|------|-----------|---------|
+| `plan.md` | You (the human) | Describes what to build — input for the builder agent/skill |
+| `progress.md` | `incremental-build` skill | Implementation log — tracks each chunk's status, files changed, and what was built |
+| `.review/review.md` | `code-review` skill | Review document with C4 architecture diagrams, component flowcharts, and code walkthrough |
+| `.docs/index.html` | `wiki-generator` skill | Single-page HTML project wiki with dark/light theme, sidebar navigation, and narrative docs |
 
 ## 🧪 Example: Using `/walkthrough`
 
@@ -101,37 +194,19 @@ You                                    Cursor AI
 4. 📝 Generates `.docs/index.html`
 5. 🌐 Open that file in a browser — done!
 
-## 🌍 Adding a Skill to All Projects
+## 🌍 Adding Skills to All Projects
 
-Want a skill available everywhere? Copy it to the global directory:
+Want a skill available everywhere? Copy to the global directory:
 
 ```bash
+# Cursor IDE
 mkdir -p ~/.cursor/skills
 cp -r skills/walkthrough ~/.cursor/skills/
+
+# Claude Code
+cp -r .claude/skills ~/.claude/skills
+cp -r .claude/agents ~/.claude/agents
 ```
-
-## 📁 Folder Structure
-
-```
-skills/
-├── 🚶 walkthrough/                  # Git change explainer
-│   └── SKILL.md
-├── 🔍 review-diff/                  # Visual diff reviewer
-│   └── SKILL.md
-├── 🧱 incremental-implementation/   # Step-by-step builder
-│   └── SKILL.md
-└── 📖 create-wiki/                  # Project wiki generator
-    ├── SKILL.md
-    └── references/
-        └── template.html            # HTML template for wiki
-
-eval/                                 # 🧪 Skill evaluation framework
-├── run-eval.sh                       # Entry point
-├── fixture-app/                      # Test codebase (Flask task API)
-└── scenarios/                        # One per skill (setup + validate + checklist)
-```
-
-> 📌 Each skill is just a `SKILL.md` file — that's what Cursor reads to know how the skill works. No install, no config, just copy and go!
 
 ## 🧪 Evaluating Skills
 
@@ -151,6 +226,42 @@ Available scenarios: `review-diff`, `walkthrough`, `create-wiki`, `incremental-i
 
 👉 See [eval/README.md](eval/README.md) for the full step-by-step guide.
 
+## 📁 Folder Structure
+
+```
+skills/                                # 🎯 Cursor IDE skills
+├── 🚶 walkthrough/SKILL.md
+├── 🔍 review-diff/SKILL.md
+├── 🧱 incremental-implementation/SKILL.md
+└── 📖 create-wiki/
+    ├── SKILL.md
+    └── references/template.html
+
+.claude/                               # 🤖 Claude Code config (gitignored)
+├── skills/                            #   Reusable skill methodology
+│   ├── incremental-build.md
+│   ├── code-review.md
+│   └── wiki-generator.md
+├── agents/                            #   Agent team definitions
+│   ├── builder.md
+│   ├── reviewer.md
+│   ├── documenter.md
+│   └── WORKFLOWS.md
+├── hooks/on-task-complete.sh          #   Quality gate hook
+└── settings.json                      #   Agent teams + permissions
+
+eval/                                  # 🧪 Skill evaluation framework
+├── run-eval.sh
+├── fixture-app/                       #   Test codebase (Flask task API)
+└── scenarios/                         #   One per skill (setup + validate + checklist)
+
+plan.md                                # 📝 Example plan (input for builder)
+progress.md                            # 📊 Implementation log (generated by builder)
+.review/review.md                      # 🔍 Review document (generated by reviewer)
+```
+
+> 📌 Cursor skills are `SKILL.md` files — just copy and go. Claude Code skills are in `.claude/skills/` — agents reference them for methodology.
+
 ## 🚀 Coming Soon
 
 - 🧪 `test-generator` — Auto-generate unit tests for your code
@@ -158,7 +269,6 @@ Available scenarios: `review-diff`, `walkthrough`, `create-wiki`, `incremental-i
 - 🔧 `refactor` — Suggest and apply refactoring patterns
 - 🐛 `explain-error` — Break down error messages and suggest fixes
 - 📡 `api-docs` — Generate API documentation from route files
-- 👀 `code-review` — Review code like a senior engineer with actionable feedback
 - 📦 `migration-guide` — Help migrate between framework versions
 
 > ✨ Have an idea for a new skill? Feel free to contribute!
