@@ -19,21 +19,40 @@ A collection of reusable AI skills for [Cursor IDE](https://cursor.com) and [Cla
 
 Reusable methodology extracted from the skills above — can be used standalone or composed by agents:
 
-| Skill | What it does |
-|-------|-------------|
-| 🔨 `incremental-build` | Chunk breakdown, progress tracking, implementation methodology |
-| 🔍 `code-review` | Review structure, C4 diagrams, Mermaid guidelines, feedback format |
-| 📖 `wiki-generator` | Codebase investigation, HTML wiki generation, content writing guidelines |
+| Skill | What it does | Status |
+|-------|-------------|--------|
+| 🔨 `incremental-build` | Chunk breakdown, progress tracking, implementation methodology | ✅ Tested |
+| 🔍 `code-review` | Review structure, C4 diagrams, Mermaid guidelines, feedback format | ✅ Tested |
+| 📖 `wiki-generator` | Codebase investigation, HTML wiki generation, content writing guidelines | ✅ Tested |
+| 🖥️ `frontend` | Component architecture, responsive styling, accessibility, API contract mocking | 🆕 New |
+| ⚙️ `backend` | Data layer design, service architecture, REST API patterns, security checklist | 🆕 New |
+| 🧪 `qa` | Test pyramid (unit → integration → E2E), bug reporting, quality report generation | 🆕 New |
+
+### Claude Code Rules (`.claude/rules/`)
+
+Coding convention files that are automatically loaded into context when working in this project. They give agents (and Claude Code in general) framework-specific best practices to follow:
+
+| Rule | What it covers |
+|------|---------------|
+| ⚙️ `fastapi-backend` | FastAPI + SQLAlchemy + Pydantic project structure, async patterns, dependency injection, auth, testing, error handling |
+| 🖥️ `react-frontend` | React + TypeScript component patterns, TanStack Query, routing, forms, state management, accessibility, testing with Vitest + MSW |
+
+> These are **not** skills or agents — they're always-on context rules. When the `backend` agent builds a FastAPI service, it automatically gets the `fastapi-backend` conventions. When the `frontend` agent builds React components, it gets the `react-frontend` conventions.
 
 ### Claude Code Agent Team (`.claude/agents/`)
 
 Thin agent wrappers that reference skills and add team coordination:
 
-| Agent | Uses skill | Team role |
-|-------|-----------|-----------|
-| 🔨 `builder` | `incremental-build` | Implements plan, coordinates with lead for approval, notifies reviewer |
-| 🔍 `reviewer` | `code-review` | Reviews changes, sends feedback to builder, re-review loop |
-| 📖 `documenter` | `wiki-generator` | Generates wiki after review passes, notifies lead |
+| Agent | Uses skill | Team role | Status |
+|-------|-----------|-----------|--------|
+| 🔨 `builder` | `incremental-build` | Implements plan, coordinates with lead for approval, notifies reviewer | ✅ Tested |
+| 🔍 `reviewer` | `code-review` | Reviews changes, sends feedback to builder, re-review loop | ✅ Tested |
+| 📖 `documenter` | `wiki-generator` | Generates wiki after review passes, notifies lead | ✅ Tested |
+| 🖥️ `frontend` | `frontend` | Builds UI components, coordinates API contracts with backend | 🆕 New |
+| ⚙️ `backend` | `backend` | Builds services & APIs, coordinates contracts with frontend | 🆕 New |
+| 🧪 `qa` | `qa` | Writes tests, reports bugs to devs, generates `.qa/report.md` | 🆕 New |
+
+> **🆕 New** = Skill/agent definition is complete and has workflow templates in `WORKFLOWS.md`, but has not yet been battle-tested in a real project. The original three (builder, reviewer, documenter) were used to build the demo `app/` — the new ones are ready to use but may need tuning based on real-world feedback.
 
 ## ⚡ Quick Start — Cursor IDE
 
@@ -129,23 +148,35 @@ Spawn "reviewer" using the reviewer agent type.
 ### Claude Code Agent Team
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    LEAD (you + Claude Code)              │
-│   Creates plan, manages task list, approves chunks      │
-└─────┬──────────────┬──────────────┬─────────────────────┘
-      │              │              │
-      ▼              ▼              ▼
-┌──────────┐  ┌──────────┐  ┌──────────────┐
-│ BUILDER  │←→│ REVIEWER │  │  DOCUMENTER  │
-│          │  │          │  │              │
-│ skill:   │  │ skill:   │  │ skill:       │
-│ incremen │  │ code-    │  │ wiki-        │
-│ tal-build│  │ review   │  │ generator    │
-│          │  │          │  │              │
-│ output:  │  │ output:  │  │ output:      │
-│ progress │  │ .review/ │  │ .docs/       │
-│ .md      │  │ review.md│  │ index.html   │
-└──────────┘  └──────────┘  └──────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                       LEAD (you + Claude Code)                       │
+│       Creates plan, manages task list, approves chunks               │
+└──┬──────────┬──────────┬──────────┬──────────┬───────────────────────┘
+   │          │          │          │          │
+   ▼          ▼          ▼          ▼          ▼
+┌────────┐┌────────┐┌────────┐┌──────────┐┌──────────────┐
+│BUILDER ││FRONTEND││BACKEND ││ REVIEWER ││  DOCUMENTER  │
+│        ││  🆕    ││  🆕    ││          ││              │
+│skill:  ││skill:  ││skill:  ││skill:    ││skill:        │
+│increm- ││front-  ││back-   ││code-     ││wiki-         │
+│ental-  ││end     ││end     ││review    ││generator     │
+│build   ││        ││        ││          ││              │
+│        ││output: ││output: ││output:   ││output:       │
+│output: ││progress││progress││.review/  ││.docs/        │
+│progress││.md     ││.md     ││review.md ││index.html    │
+│.md     │└───┬────┘└───┬────┘└──────────┘└──────────────┘
+└────────┘    │  ↕ API   │         ▲
+              │ contracts│         │
+              └────┬─────┘    ┌────┴───┐
+                   │          │   QA   │
+                   └─────────→│   🆕   │
+                    ready     │skill:  │
+                    to test   │qa      │
+                              │output: │
+                              │.qa/    │
+                              │report  │
+                              │.md     │
+                              └────────┘
 ```
 
 ## 📄 Generated Files
@@ -158,6 +189,7 @@ These files are **created by skills/agents during execution** — they are not s
 | `progress.md` | `incremental-build` skill | Implementation log — tracks each chunk's status, files changed, and what was built |
 | `.review/review.md` | `code-review` skill | Review document with C4 architecture diagrams, component flowcharts, and code walkthrough |
 | `.docs/index.html` | `wiki-generator` skill | Single-page HTML project wiki with dark/light theme, sidebar navigation, and narrative docs |
+| `.qa/report.md` | `qa` skill | Quality report with coverage summary, bugs found, risk areas, and recommendations |
 
 ## 🧪 Example: Using `/walkthrough`
 
@@ -238,14 +270,23 @@ skills/                                # 🎯 Cursor IDE skills
     └── references/template.html
 
 .claude/                               # 🤖 Claude Code config
+├── rules/                             #   Always-on coding conventions
+│   ├── fastapi-backend.md             #     FastAPI + SQLAlchemy + Pydantic
+│   └── react-frontend.md             #     React + TypeScript + TanStack Query
 ├── skills/                            #   Reusable skill methodology
-│   ├── incremental-build.md
-│   ├── code-review.md
-│   └── wiki-generator.md
+│   ├── incremental-build.md           #     ✅ Chunked implementation
+│   ├── code-review.md                 #     ✅ Structured review + diagrams
+│   ├── wiki-generator.md              #     ✅ HTML wiki generation
+│   ├── frontend.md                    #     🆕 Frontend component dev
+│   ├── backend.md                     #     🆕 Backend service dev
+│   └── qa.md                          #     🆕 Test strategy + quality report
 ├── agents/                            #   Agent team definitions
-│   ├── builder.md
-│   ├── reviewer.md
-│   ├── documenter.md
+│   ├── builder.md                     #     ✅
+│   ├── reviewer.md                    #     ✅
+│   ├── documenter.md                  #     ✅
+│   ├── frontend.md                    #     🆕
+│   ├── backend.md                     #     🆕
+│   ├── qa.md                          #     🆕
 │   └── WORKFLOWS.md
 ├── hooks/on-task-complete.sh          #   Quality gate hook
 └── settings.json                      #   Agent teams + permissions
@@ -258,6 +299,7 @@ eval/                                  # 🧪 Skill evaluation framework
 plan.md                                # 📝 Example plan (input for builder)
 progress.md                            # 📊 Implementation log (generated by builder)
 .review/review.md                      # 🔍 Review document (generated by reviewer)
+.qa/report.md                          # 🧪 Quality report (generated by qa)
 ```
 
 > 📌 Cursor skills are `SKILL.md` files — just copy and go. Claude Code skills are in `.claude/skills/` — agents reference them for methodology.

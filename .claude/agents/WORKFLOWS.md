@@ -55,6 +55,74 @@ Workflow:
 3. Give me a walkthrough of the review findings
 ```
 
+## Full-Stack Build (frontend + backend + QA)
+
+```
+Create an agent team to build a full-stack feature with testing.
+
+Plan: [paste plan or path to plan.md]
+
+Team:
+- Spawn "backend" using the backend agent type. Require plan approval.
+- Spawn "frontend" using the frontend agent type. Require plan approval.
+- Spawn "reviewer" using the reviewer agent type.
+- Spawn "qa" using the qa agent type.
+
+Workflow:
+1. Backend proposes service breakdown — I'll approve before coding starts
+2. Frontend proposes component breakdown — I'll approve before coding starts
+3. Backend and frontend coordinate API contracts directly
+4. Both implement in parallel, logging to progress.md
+5. When both are done, reviewer generates .review/review.md
+6. If reviewer finds issues, send feedback to the responsible dev to fix
+7. After review passes, qa designs test plan — I'll approve
+8. QA writes and runs tests, reports bugs to frontend or backend
+9. Devs fix bugs, qa re-tests until clean
+10. QA generates .qa/report.md
+11. Give me a walkthrough summary when done
+```
+
+## Backend Build + Review + QA
+
+```
+Create an agent team to build a backend service with review and testing.
+
+Plan: [paste plan or path to plan.md]
+
+Team:
+- Spawn "backend" using the backend agent type. Require plan approval.
+- Spawn "reviewer" using the reviewer agent type.
+- Spawn "qa" using the qa agent type.
+
+Workflow:
+1. Backend proposes service breakdown — I'll approve
+2. Backend implements, logs to progress.md
+3. Reviewer reviews and sends feedback to backend
+4. Backend fixes, reviewer re-reviews until clean
+5. QA designs test plan, writes tests, reports bugs to backend
+6. QA generates .qa/report.md when all critical bugs are resolved
+7. Give me a walkthrough summary when done
+```
+
+## Frontend Build + Review
+
+```
+Create an agent team to build frontend components with review.
+
+Plan: [paste plan or path to plan.md]
+
+Team:
+- Spawn "frontend" using the frontend agent type. Require plan approval.
+- Spawn "reviewer" using the reviewer agent type.
+
+Workflow:
+1. Frontend proposes component breakdown — I'll approve
+2. Frontend implements, logs to progress.md
+3. Reviewer reviews and sends feedback to frontend
+4. Frontend fixes, reviewer re-reviews until clean
+5. Give me a walkthrough summary when done
+```
+
 ## Parallel Review (competing perspectives)
 
 ```
