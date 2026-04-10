@@ -237,7 +237,7 @@ skills/                                # 🎯 Cursor IDE skills
     ├── SKILL.md
     └── references/template.html
 
-.claude/                               # 🤖 Claude Code config (gitignored)
+.claude/                               # 🤖 Claude Code config
 ├── skills/                            #   Reusable skill methodology
 │   ├── incremental-build.md
 │   ├── code-review.md

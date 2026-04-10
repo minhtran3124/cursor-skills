@@ -1,0 +1,37 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(mkdir *)",
+      "Bash(git *)",
+      "Bash(python3 *)",
+      "Bash(pip3 *)",
+      "Bash(pytest *)",
+      "Bash(chmod *)",
+      "Bash(touch *)",
+      "Bash(cp *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep"
+    ]
+  },
+  "hooks": {
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/on-task-complete.sh \"$TASK_NAME\""
+          }
+        ]
+      }
+    ]
+  }
+}
