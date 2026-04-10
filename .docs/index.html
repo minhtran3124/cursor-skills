@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursor Skills — Wiki</title>
+<style>
+  :root {
+    --bg: #F7F7F8; --bg-secondary: #FFFFFF; --bg-tertiary: #EDEDF0; --border: #D4D4D8; --border-strong: #A1A1AA;
+    --text: #18181B; --text-muted: #71717A; --text-subtle: #A1A1AA; --accent: #3F3F46; --accent-hover: #27272A;
+    --accent-surface: #F4F4F5; --accent-border: #A1A1AA; --green: #15803D; --green-surface: #F0FDF4; --orange: #B45309;
+    --orange-surface: #FFFBEB; --red: #B91C1C; --red-surface: #FEF2F2; --blue: #1D4ED8; --blue-surface: #EFF6FF;
+    --purple: #6D28D9; --purple-surface: #F5F3FF; --cyan: #0E7490; --cyan-surface: #ECFEFF;
+    --shadow-flat: 0 1px 2px rgba(0,0,0,0.04); --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-menu: 0 4px 6px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+  html.dark {
+    --bg: #18181B; --bg-secondary: #27272A; --bg-tertiary: #3F3F46; --border: #3F3F46; --border-strong: #52525B;
+    --text: #FAFAFA; --text-muted: #A1A1AA; --text-subtle: #52525B; --accent: #D4D4D8; --accent-hover: #FAFAFA;
+    --accent-surface: #27272A; --accent-border: #71717A; --green: #4ADE80; --green-surface: #14532D; --orange: #FBBF24;
+    --orange-surface: #78350F; --red: #F87171; --red-surface: #7F1D1D; --blue: #60A5FA; --blue-surface: #1E3A5F;
+    --purple: #A78BFA; --purple-surface: #2E1065; --cyan: #22D3EE; --cyan-surface: #164E63;
+    --shadow-flat: 0 1px 2px rgba(0,0,0,0.3); --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-menu: 0 4px 6px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; } a:hover { color: var(--accent-hover); text-decoration: underline; }
+  .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 260px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 24px 16px; overflow-y: auto; z-index: 100; display: flex; flex-direction: column; }
+  .sidebar-header { margin-bottom: 24px; padding: 0 8px; }
+  .sidebar-header h3 { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .sidebar-header .version { font-size: 11px; color: var(--text-muted); background: var(--bg-tertiary); padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+  .sidebar nav { flex: 1; }
+  .sidebar nav a { display: block; padding: 6px 12px; color: var(--text-muted); font-size: 13px; font-weight: 500; border-radius: 8px; transition: all 0.15s; margin-bottom: 1px; }
+  .sidebar nav a:hover { background: var(--bg-tertiary); color: var(--text); text-decoration: none; }
+  .main { margin-left: calc(260px + (100% - 260px - 900px) / 2); margin-right: auto; max-width: 900px; padding: 40px 32px 80px; min-height: 100vh; }
+  .hero { background: transparent; border: none; padding: 40px 0; margin-bottom: 32px; border-bottom: 1px solid var(--border); }
+  .hero h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; color: var(--text); }
+  .hero .subtitle { font-size: 16px; color: var(--text-muted); max-width: 760px; line-height: 1.6; }
+  .hero .tech-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .hero .tech-badge { font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 4px; background: var(--accent-surface); color: var(--accent); border: 1px solid var(--accent-border); }
+  h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin: 48px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+  h3 { font-size: 16px; font-weight: 600; margin: 28px 0 12px; color: var(--text); }
+  p { margin-bottom: 16px; color: var(--text); } ul, ol { margin-bottom: 16px; padding-left: 24px; color: var(--text); } li { margin-bottom: 6px; } strong { font-weight: 600; }
+  code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace; font-size: 13px; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; color: var(--accent); }
+  pre { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; overflow-x: auto; margin-bottom: 16px; }
+  pre code { background: none; padding: 0; color: var(--text); font-size: 13px; line-height: 1.6; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 14px; }
+  thead th { text-align: left; padding: 10px 14px; background: var(--bg-tertiary); border-bottom: 2px solid var(--border); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; } tbody tr:hover { background: var(--bg-tertiary); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tag-green { background: var(--green-surface); color: var(--green); } .tag-blue { background: var(--blue-surface); color: var(--blue); } .tag-red { background: var(--red-surface); color: var(--red); } .tag-orange { background: var(--orange-surface); color: var(--orange); } .tag-purple { background: var(--purple-surface); color: var(--purple); } .tag-cyan { background: var(--cyan-surface); color: var(--cyan); }
+  .callout { padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+  .callout.info { background: var(--blue-surface); border-left: 4px solid var(--blue); color: var(--text); }
+  .callout.warn { background: var(--orange-surface); border-left: 4px solid var(--orange); color: var(--text); }
+  .flow { margin-bottom: 16px; overflow-x: auto; }
+  .flow-steps { display: flex; align-items: center; gap: 0; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; white-space: nowrap; }
+  .flow-step { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+  .flow-step.blue { background: var(--blue-surface); color: var(--blue); } .flow-step.green { background: var(--green-surface); color: var(--green); } .flow-step.orange { background: var(--orange-surface); color: var(--orange); } .flow-step.purple { background: var(--purple-surface); color: var(--purple); } .flow-step.cyan { background: var(--cyan-surface); color: var(--cyan); }
+  .flow-arrow { margin: 0 8px; color: var(--text-subtle); font-size: 18px; }
+  .file-tree { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; font-family: 'SF Mono', 'Fira Code', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7; overflow-x: auto; margin-bottom: 16px; white-space: pre; }
+  .file-tree .dir { color: var(--accent); font-weight: 600; } .file-tree .file { color: var(--text); } .file-tree .comment { color: var(--text-muted); font-style: italic; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-flat); }
+  .card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); } .card p { font-size: 13px; color: var(--text-muted); margin-bottom: 0; }
+  @media (max-width: 900px) { .sidebar { display: none; } .main { margin-left: auto; margin-right: auto; padding: 24px 20px 60px; } }
+  @media (max-width: 600px) { .card-grid { grid-template-columns: 1fr; } .hero { padding: 24px 0; } .hero h1 { font-size: 24px; } }
+  ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+  .theme-toggle { display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 16px; transition: all 0.15s; width: 100%; justify-content: center; }
+  .theme-toggle:hover { background: var(--border); color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h3>Cursor Skills <span class="version">Wiki</span></h3>
+  </div>
+  <nav>
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#project-structure">Project Structure</a>
+    <a href="#core-flows">Key Flows</a>
+    <a href="#api-routes">API Routes</a>
+    <a href="#agent-teams">Agent Teams</a>
+    <a href="#evaluation">Evaluation Framework</a>
+    <a href="#testing">Testing</a>
+    <a href="#configuration">Configuration</a>
+    <a href="#commands">Development Commands</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <span id="themeIcon">&#9790;</span>
+    <span id="themeLabel">Dark mode</span>
+  </button>
+</div>
+
+<main class="main">
+  <div class="hero" id="overview">
+    <h1>Cursor Skills</h1>
+    <p class="subtitle">
+      Cursor Skills is a repository of reusable AI skill playbooks, agent-team definitions, and a small FastAPI demo app. It also includes a self-contained evaluation harness that stages repeatable scenarios in <code>eval/sandbox/</code> so each skill can be validated with both automated checks and human quality review.
+    </p>
+    <div class="tech-badges">
+      <span class="tech-badge">Python</span>
+      <span class="tech-badge">FastAPI</span>
+      <span class="tech-badge">Pytest</span>
+      <span class="tech-badge">Bash</span>
+      <span class="tech-badge">Cursor Skills</span>
+      <span class="tech-badge">Claude Agent Teams</span>
+    </div>
+  </div>
+
+  <h2 id="architecture">Architecture</h2>
+  <p>
+    The repository is organized around three complementary workflows. First, the <code>skills/</code> directory defines process-heavy <code>SKILL.md</code> documents that teach an AI how to execute tasks like walkthroughs, visual reviews, and wiki generation. Second, <code>.claude/agents/</code> provides role-specific agent prompts (builder, reviewer, documenter) that coordinate larger multi-agent pipelines. Third, <code>eval/</code> acts as a deterministic testing harness where each skill gets a controlled sandbox state before output is validated.
+  </p>
+  <p>
+    The included <code>app/</code> service is a minimal FastAPI task API used as a concrete code target for tests and examples. In contrast, <code>eval/fixture-app/</code> is a separate Flask application used exclusively for scenario-driven skill evaluation. This split is intentional: the demo app shows a clean implementation baseline, while the fixture app can be reset and mutated per scenario without affecting the root project.
+  </p>
+  <div class="callout info"><strong>Note:</strong> Two API stacks coexist by design: <code>app/</code> (FastAPI demo) and <code>eval/fixture-app/</code> (Flask scenario fixture). Most skill validation runs against the sandbox copy of the fixture app, not the root FastAPI app.</div>
+
+  <h2 id="project-structure">Project Structure</h2>
+  <p>
+    The tree below highlights the folders that matter most when extending or evaluating skills. The key pattern is that generated artifacts live in dotfolders (<code>.review/</code>, <code>.docs/</code>) and scenario automation lives under <code>eval/scenarios/</code>.
+  </p>
+  <div class="file-tree"><span class="dir">cursor-skills/</span>
+├── <span class="dir">skills/</span>                                 <span class="comment"># Cursor IDE skill definitions</span>
+│   ├── <span class="dir">walkthrough/</span>
+│   ├── <span class="dir">review-diff/</span>
+│   ├── <span class="dir">incremental-implementation/</span>
+│   └── <span class="dir">create-wiki/</span>                      <span class="comment"># Includes references/template.html</span>
+├── <span class="dir">.claude/agents/</span>                         <span class="comment"># builder/reviewer/documenter prompts</span>
+├── <span class="dir">.claude/hooks/</span>                          <span class="comment"># task-complete guard script</span>
+├── <span class="dir">app/</span>                                    <span class="comment"># FastAPI demo app</span>
+│   ├── <span class="file">main.py</span>
+│   ├── <span class="dir">core/</span><span class="file">config.py</span>
+│   ├── <span class="dir">models/</span><span class="file">task.py</span>
+│   └── <span class="dir">routes/</span><span class="file">tasks.py</span>
+├── <span class="dir">tests/</span>                                  <span class="comment"># FastAPI tests</span>
+├── <span class="dir">eval/</span>                                   <span class="comment"># Skill evaluation framework</span>
+│   ├── <span class="file">run-eval.sh</span>
+│   ├── <span class="dir">fixture-app/</span>                        <span class="comment"># Flask baseline app</span>
+│   ├── <span class="dir">scenarios/</span>                          <span class="comment"># setup.sh + validate.sh + checklist.md</span>
+│   └── <span class="dir">sandbox/</span>                            <span class="comment"># recreated per scenario</span>
+├── <span class="file">plan.md</span>                                <span class="comment"># implementation plan</span>
+├── <span class="file">progress.md</span>                            <span class="comment"># chunked build log</span>
+└── <span class="file">requirements.txt</span></div>
+
+  <h2 id="core-flows">Key Flows</h2>
+  <h3>Skill Evaluation Lifecycle</h3>
+  <p>
+    The core lifecycle is designed to be reproducible. A scenario setup script creates a clean git state in <code>eval/sandbox/</code>, the user runs the target skill in Cursor against that sandbox, and then a validator enforces structural expectations. A companion checklist captures quality criteria that scripts cannot reliably evaluate.
+  </p>
+  <div class="flow">
+    <div class="flow-steps">
+      <span class="flow-step blue">run-eval setup</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-step green">open sandbox</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-step purple">run skill</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-step orange">validate.sh + checklist</span>
+    </div>
+  </div>
+
+  <h3>Demo API Request Flow</h3>
+  <p>
+    The FastAPI app itself is deliberately small: <code>app/main.py</code> wires configuration and routers, <code>app/routes/tasks.py</code> maps HTTP concerns to helper functions, and <code>app/models/task.py</code> owns in-memory state and CRUD primitives. This keeps route handlers thin and makes behavior easy to test with <code>TestClient</code>.
+  </p>
+
+  <h2 id="api-routes">API Routes</h2>
+  <p>
+    The demo service mounts routes under <code>/api</code>. The table below documents the behavior currently implemented in <code>app/routes/tasks.py</code> and how each endpoint maps to model helpers.
+  </p>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>Behavior</th><th>Implementation Notes</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tag-green">GET</span></td><td><code>/api/tasks</code></td><td>List all tasks</td><td>Returns in-memory <code>tasks</code> list.</td></tr>
+      <tr><td><span class="tag tag-blue">POST</span></td><td><code>/api/tasks</code></td><td>Create task</td><td>Validates <code>TaskCreate</code>, delegates to <code>add_task()</code>.</td></tr>
+      <tr><td><span class="tag tag-green">GET</span></td><td><code>/api/tasks/{task_id}</code></td><td>Fetch by ID</td><td>Uses <code>get_task()</code>, returns 404 when missing.</td></tr>
+      <tr><td><span class="tag tag-red">DELETE</span></td><td><code>/api/tasks/{task_id}</code></td><td>Delete by ID</td><td>Uses <code>delete_task()</code>, returns 204 on success or 404.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><strong>Warning:</strong> Storage is process-local memory. Restarting the server clears all tasks, and concurrent workers will not share state.</div>
+
+  <h2 id="agent-teams">Agent Teams</h2>
+  <p>
+    Under <code>.claude/agents/</code>, the repository defines specialized teammate roles and a workflow catalog in <code>WORKFLOWS.md</code>. The intent is to move from ad-hoc prompting to repeatable collaboration where each role has a clear output contract: builder writes code and <code>progress.md</code>, reviewer writes <code>.review/review.md</code>, and documenter writes <code>.docs/index.html</code>.
+  </p>
+  <table>
+    <thead><tr><th>Agent</th><th>Primary Responsibility</th><th>Key Artifact</th></tr></thead>
+    <tbody>
+      <tr><td><code>builder</code></td><td>Chunk plan, implement incrementally, track status</td><td><code>progress.md</code></td></tr>
+      <tr><td><code>reviewer</code></td><td>Audit git diff and explain risks with diagrams</td><td><code>.review/review.md</code></td></tr>
+      <tr><td><code>documenter</code></td><td>Synthesize architecture into single-page docs</td><td><code>.docs/index.html</code></td></tr>
+    </tbody>
+  </table>
+  <p>
+    The hook script at <code>.claude/hooks/on-task-complete.sh</code> provides guardrails by checking for tests on implementation tasks, minimum review quality on review tasks, and wiki size for documentation tasks. This gives lightweight quality gates without requiring a full CI pipeline.
+  </p>
+
+  <h2 id="evaluation">Evaluation Framework</h2>
+  <p>
+    The <code>eval/</code> system is where most operational rigor lives. Each scenario has a setup script that constructs the exact repo state expected by a skill, a validator that checks structural output, and a checklist for manual review. This combination catches both hard failures (missing files/sections) and softer quality issues (accuracy, clarity, consistency).
+  </p>
+  <div class="card-grid">
+    <div class="card">
+      <h4><code>review-diff</code></h4>
+      <p>Injects uncommitted Flask app changes and expects <code>.review/review.md</code> with diagrams and diff narrative.</p>
+    </div>
+    <div class="card">
+      <h4><code>walkthrough</code></h4>
+      <p>Creates a feature branch with auth changes and evaluates conversational file-by-file explanation quality.</p>
+    </div>
+    <div class="card">
+      <h4><code>create-wiki</code></h4>
+      <p>Starts from a clean codebase and checks <code>.docs/index.html</code> structure, content breadth, and styling signals.</p>
+    </div>
+    <div class="card">
+      <h4><code>incremental-implementation</code></h4>
+      <p>Seeds a plan file and verifies chunk tracking, code deltas, query/filter behavior, and expanded tests.</p>
+    </div>
+  </div>
+
+  <h2 id="testing">Testing</h2>
+  <p>
+    Tests in <code>tests/test_tasks.py</code> target the FastAPI demo using <code>fastapi.testclient.TestClient</code>. The fixture resets in-memory state before and after each test via <code>reset_store()</code>, which keeps test order from leaking state between cases.
+  </p>
+  <p>
+    Coverage currently emphasizes core behavior: create, list, read existing/missing tasks, and delete existing/missing tasks. For production-facing evolution, the next step would be adding tests for concurrent access assumptions, persistence migration behavior, and richer validation rules.
+  </p>
+
+  <h2 id="configuration">Configuration</h2>
+  <p>
+    Configuration is intentionally lightweight. <code>app/core/config.py</code> defines a <code>Settings</code> class with <code>app_name</code> and <code>app_version</code> using <code>pydantic-settings</code>, and <code>app/main.py</code> injects those values into FastAPI metadata.
+  </p>
+  <pre><code>from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    app_name: str = "Task Tracker API"
+    app_version: str = "0.1.0"</code></pre>
+  <p>
+    There is no deployment manifest or CI file in the repository yet. That keeps setup friction low for skill development, but it also means environment parity and release checks are currently manual.
+  </p>
+
+  <h2 id="commands">Development Commands</h2>
+  <p>
+    These commands cover the common daily loops for app development, skill evaluation, and artifact validation.
+  </p>
+  <table>
+    <thead><tr><th>Purpose</th><th>Command</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Install dependencies</td><td><code>python3 -m pip install -r requirements.txt</code></td><td>Installs FastAPI runtime stack.</td></tr>
+      <tr><td>Run FastAPI app</td><td><code>uvicorn app.main:app --reload</code></td><td>Serves demo API at <code>http://127.0.0.1:8000</code>.</td></tr>
+      <tr><td>Run root tests</td><td><code>python3 -m pytest -q</code></td><td>Executes <code>tests/test_tasks.py</code>.</td></tr>
+      <tr><td>List eval scenarios</td><td><code>bash eval/run-eval.sh</code></td><td>Shows available scenario names and usage.</td></tr>
+      <tr><td>Setup scenario</td><td><code>bash eval/run-eval.sh review-diff</code></td><td>Creates sandbox with scenario state.</td></tr>
+      <tr><td>Validate scenario output</td><td><code>bash eval/run-eval.sh review-diff validate</code></td><td>Runs scenario-specific structural checks.</td></tr>
+    </tbody>
+  </table>
+
+  <hr style="margin-top: 48px; border-color: var(--border);">
+  <p style="text-align: center; color: var(--text-subtle); font-size: 12px; margin-top: 24px;">
+    Cursor Skills &mdash; Generated from codebase analysis on 2026-04-10
+  </p>
+</main>
+
+<script>
+function toggleTheme() {
+  var html = document.documentElement;
+  var isDark = html.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  updateToggleButton(isDark);
+}
+function updateToggleButton(isDark) {
+  document.getElementById('themeIcon').innerHTML = isDark ? '&#9788;' : '&#9790;';
+  document.getElementById('themeLabel').textContent = isDark ? 'Light mode' : 'Dark mode';
+}
+(function() {
+  var saved = localStorage.getItem('theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var isDark = saved === 'dark' || (!saved && prefersDark);
+  if (isDark) document.documentElement.classList.add('dark');
+  document.addEventListener('DOMContentLoaded', function() { updateToggleButton(isDark); });
+})();
+</script>
+</body>
+</html>
