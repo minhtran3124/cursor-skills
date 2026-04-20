@@ -93,6 +93,14 @@ You                                    AI
 
 Use `/exploring` when requirements are fuzzy or product decisions are unstated. It runs a Socratic dialogue — one question at a time — to lock decisions before any design begins, then writes `specs/YYYY-MM-DD/<feature>/context.md` as the handoff to brainstorming.
 
+The skill scores the request and picks a question budget automatically:
+
+| Score | Tier | Questions |
+|-------|------|-----------|
+| 0–1 | Quick | ≤4 |
+| 2–3 | Standard | ≤8 |
+| 4–5 | Deep | ≤12 |
+
 **Typical workflow:**
 
 ```
