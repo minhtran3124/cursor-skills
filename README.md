@@ -117,13 +117,43 @@ relationships:
 
 When no explicit metadata is present, `/visual` infers relationships from skill content and marks them as dashed edges.
 
-## Example: Using `/create-wiki`
+## The `/preflight` Skill — Research Before You Build
 
-1. Open your project in Cursor
-2. Open AI chat and type: `/create-wiki`
-3. AI explores your codebase automatically
-4. Generates `.docs/index.html`
-5. Open that file in a browser
+`/preflight` is an anti-reinvention check that runs before any implementation. It answers five questions: What is this repo? What already exists locally? What does the ecosystem provide? What do the official docs recommend? What is the lightest credible path?
+
+The output is a structured **research brief** — not code. The brief is the gate. Nothing gets built until it is complete.
+
+**Typical workflow:**
+
+```
+/preflight "add rate limiting to the API"
+      |
+      v
+  1. Read CLAUDE.md, README, conventions
+  2. Map the stack from real files (package.json, requirements.txt, go.mod, ...)
+  3. Search for existing rate-limiting code in the repo
+  4. Check upstream repos and official docs for recommended patterns
+  5. Produce a research brief with recommendation + confidence score
+      |
+      v
+  /incremental-implementation  ← implement the chosen path
+  /compound                    ← save research learnings
+```
+
+**Research brief structure:**
+
+| Section | What it captures |
+|---------|-----------------|
+| Bottom Line | Recommendation, confidence %, next step |
+| Repo Snapshot | Stack, frameworks, constraints |
+| Local Findings | Reusable code, existing abstractions, conventions |
+| Upstream Findings | Patterns from public repos worth modeling |
+| Docs Findings | Official API, current best practice, deprecations |
+| Risks & Unknowns | Evidence gaps, version uncertainty, follow-up questions |
+
+The brief template lives at `skills/preflight/references/research-brief-template.md`.
+
+`/preflight` can be waived explicitly ("skip research", "just build it", `--waive`) when the user already knows the approach. Waiving is acknowledged and the risk is noted before continuing.
 
 ## Adding a Skill to All Projects
 
