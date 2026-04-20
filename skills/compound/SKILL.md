@@ -5,6 +5,10 @@ description: >
   discoverable documentation. Use after any session where a bug was solved,
   a non-obvious pattern was discovered, or an architectural decision was made.
   Trigger: /compound
+relationships:
+  - target: create-wiki
+    type: complements
+    label: "docs/solutions/ enriches wiki"
 ---
 
 # Compound — Knowledge Compounding

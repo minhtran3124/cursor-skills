@@ -1,6 +1,13 @@
 ---
 name: walkthrough
 description: Walk through git changes step by step in a multi-turn conversational way. Use this skill whenever the user says /walkthrough, or asks to "walk me through the changes", "explain this diff", "walk through this PR", "explain what changed in this branch", or wants to understand code changes one file at a time. Also trigger when a user shows a git diff and wants a guided explanation.
+relationships:
+  - target: review-diff
+    type: alternative
+    label: "formal written review"
+  - target: compound
+    type: leads-to
+    label: "save session learnings"
 ---
 
 # Walkthrough Skill
