@@ -91,17 +91,7 @@ You                                    AI
 
 ## The `/exploring` Skill — Requirements Before Design
 
-`/exploring` runs a structured Socratic dialogue to lock product decisions before any design or implementation starts. It writes a `specs/YYYY-MM-DD/<feature>/context.md` file — the single source of truth the `brainstorming` skill reads as its starting point.
-
-**Use when:** requirements are fuzzy, product decisions are unstated, or before invoking a design skill when intent is unclear.
-
-**Scope tiers** — assessed automatically from the request:
-
-| Score | Tier | Question budget |
-|-------|------|----------------|
-| 0–1 | Quick | ≤4 questions |
-| 2–3 | Standard | ≤8 questions |
-| 4–5 | Deep | ≤12 questions |
+Use `/exploring` when requirements are fuzzy or product decisions are unstated. It runs a Socratic dialogue — one question at a time — to lock decisions before any design begins, then writes `specs/YYYY-MM-DD/<feature>/context.md` as the handoff to brainstorming.
 
 **Typical workflow:**
 
@@ -109,28 +99,14 @@ You                                    AI
 /exploring "add a notification system"
       |
       v
-  1. Score the request — classify scope tier
-  2. Classify domain type (SEE / CALL / RUN / READ / ORGANIZE)
-  3. Quick codebase grep — surface reusable patterns
-  4. Ask one question at a time — lock each decision (D1, D2...)
-  5. Write specs/YYYY-MM-DD/<feature>/context.md
+  Ask questions, lock decisions (D1, D2...)
       |
       v
-  brainstorming  ← reads context.md as design starting point
+  specs/YYYY-MM-DD/<feature>/context.md
+      |
+      v
+  brainstorming  ← reads context.md as starting point
 ```
-
-**context.md structure:**
-
-| Section | What it captures |
-|---------|----------------|
-| Feature Boundary | One sentence: what this delivers and where it ends |
-| Locked Decisions | All decisions with stable IDs (D1, D2...) and rationale |
-| Agent's Discretion | Areas explicitly delegated to implementation |
-| Existing Code Context | File paths and patterns found during the grep scout |
-| Outstanding Questions | Blockers to resolve before brainstorming vs. deferred |
-| Deferred Ideas | Scope-creep items noted for future work |
-
-The gray-area probes used during exploration live at `skills/exploring/references/gray-area-probes.md`.
 
 ## The `/visual` Skill — Skill Dashboard
 
