@@ -13,7 +13,7 @@ A collection of custom AI skills for [Cursor IDE](https://cursor.com). These ski
 | 🧱 `incremental-implementation` | Builds features step-by-step, checking with you before each chunk |
 | 📖 `create-wiki` | Generates a single-page HTML wiki documenting your entire project |
 | 🧠 `compound` | Transforms session learnings into persistent `docs/solutions/` docs — bugs, patterns, decisions |
-| 🗺️ `visual` | Generates a skill relationship graph — Mermaid markdown + interactive HTML browser view |
+| 🗺️ `visual` | Generates a skill dashboard with cards, interactive graph, and workflow chains |
 
 ## ⚡ Quick Start
 
@@ -97,6 +97,38 @@ You                                    Cursor AI
  │    ◄────────────────────────────────    │
 ```
 
+## 🗺️ Introducing `/visual` — Skill Dashboard
+
+`/visual` maps every skill in your project into a relationship graph and generates two browser files you can open directly:
+
+| Output | What it shows |
+|--------|--------------|
+| `.docs/skill-dashboard.html` | Three-tab dashboard: skill cards, interactive graph, workflow chains |
+| `.docs/skill-graph.html` | Standalone interactive graph |
+| `docs/SKILL_GRAPH.md` | Mermaid diagrams + skill index table |
+
+**Skills tab** — a card for every skill with its trigger, description, reads/writes, and outgoing relationships. Click any card to open a full detail view: complete description, how-to-use guide, I/O breakdown, and all relationships with direction and context.
+
+**Graph tab** — interactive force-directed graph (Cytoscape.js). Hover a node to dim unconnected skills and reveal edge type labels on its connections. Hover an edge for the full relationship detail. Toggle explicit vs. inferred edges with the filter buttons.
+
+**Workflows tab** — auto-derived workflow chains, alternative pairs, and complements rendered as visual step sequences.
+
+Relationships between skills are declared in each `SKILL.md` frontmatter:
+
+```yaml
+relationships:
+  - target: compound
+    type: leads-to
+    label: "save session learnings"
+  - target: review-diff
+    type: alternative
+    label: "formal written review"
+```
+
+When no explicit metadata is present, `/visual` infers relationships from skill content and marks them as dashed edges.
+
+---
+
 ## 📖 Example: Using `/create-wiki`
 
 1. 📂 Open your project in Cursor
@@ -133,7 +165,8 @@ skills/
 └── 🗺️ visual/                       # Skill graph visualizer
     ├── SKILL.md
     └── references/
-        └── graph-template.html      # Cytoscape.js HTML template
+        ├── dashboard-template.html  # Three-tab dashboard (skills + graph + workflows)
+        └── graph-template.html      # Standalone Cytoscape.js graph
 
 eval/                                 # 🧪 Skill evaluation framework
 ├── run-eval.sh                       # Entry point
