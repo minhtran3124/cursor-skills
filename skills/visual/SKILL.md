@@ -189,15 +189,29 @@ A table: Skill | Trigger | Description | Reads | Writes
 
 ---
 
-### Step 6: Generate interactive HTML
+### Step 6: Generate interactive HTML outputs
+
+Serialize the graph model from Step 4 to a single-line minified JSON string.
+Use this JSON string for both outputs below (same data, different templates).
+
+**6a — Skill dashboard** (primary output)
+
+Open `skills/visual/references/dashboard-template.html`.
+Replace `/* GRAPH_DATA_JSON */` with the JSON string.
+Write to `.docs/skill-dashboard.html`.
+
+The dashboard has three tabs:
+- **Skills** — card grid with every skill's trigger, description, reads/writes, outgoing relationships
+- **Graph** — interactive Cytoscape graph (lazy-initialized on first tab open)
+- **Workflows** — auto-derived workflow chains, alternatives, and complements
+
+**6b — Standalone graph** (secondary output)
 
 Open `skills/visual/references/graph-template.html`.
+Replace `/* GRAPH_DATA_JSON */` with the same JSON string.
+Write to `.docs/skill-graph.html`.
 
-1. Serialize the graph model from Step 4 to a single-line minified JSON string.
-2. Replace the literal placeholder `/* GRAPH_DATA_JSON */` in the template with that JSON string.
-3. Write result to `.docs/skill-graph.html`.
-
-If `graph-template.html` is not found, skip this step and note it in the report.
+If either template file is not found, skip that output and note it in the report.
 
 ---
 
@@ -211,7 +225,8 @@ Search CLAUDE.md for `SKILL_GRAPH`. If not found, propose:
 > ```markdown
 > ## Skill Graph
 > Skill relationships and workflows: `docs/SKILL_GRAPH.md`
-> Interactive browser view: `.docs/skill-graph.html`
+> Dashboard (skills + graph + workflows): `.docs/skill-dashboard.html`
+> Standalone graph: `.docs/skill-graph.html`
 > ```
 >
 > Add to CLAUDE.md? (yes/no)
@@ -226,8 +241,9 @@ Search CLAUDE.md for `SKILL_GRAPH`. If not found, propose:
 ★ Skill graph mapped
   Skills:        N
   Relationships: M explicit, K inferred
-  → docs/SKILL_GRAPH.md           [Mermaid overview + workflows + data flow + index]
-  → .docs/skill-graph.html        [interactive Cytoscape graph]
+  → docs/SKILL_GRAPH.md              [Mermaid overview + workflows + data flow + index]
+  → .docs/skill-dashboard.html       [dashboard: skills cards + graph + workflows]
+  → .docs/skill-graph.html           [standalone interactive graph]
   CLAUDE.md: surfaced ✓ / not yet referenced
 ```
 
