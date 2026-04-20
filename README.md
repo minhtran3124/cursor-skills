@@ -12,6 +12,7 @@ A collection of custom AI skills for [Cursor IDE](https://cursor.com). These ski
 | 🔍 `review-diff` | Generates a visual Markdown review of your code changes with architecture diagrams |
 | 🧱 `incremental-implementation` | Builds features step-by-step, checking with you before each chunk |
 | 📖 `create-wiki` | Generates a single-page HTML wiki documenting your entire project |
+| 🧠 `compound` | Transforms session learnings into persistent `docs/solutions/` docs — bugs, patterns, decisions |
 
 ## ⚡ Quick Start
 
@@ -37,6 +38,7 @@ Open your project in Cursor, then type a command in the AI chat:
 /walkthrough          → explain git changes on current branch
 /review-diff          → generate a visual review of uncommitted changes
 /create-wiki          → generate project documentation
+/compound             → save session learnings to docs/solutions/
 ```
 
 For `incremental-implementation`, just describe a plan and ask Cursor to "implement this step by step".
@@ -120,10 +122,12 @@ skills/
 │   └── SKILL.md
 ├── 🧱 incremental-implementation/   # Step-by-step builder
 │   └── SKILL.md
-└── 📖 create-wiki/                  # Project wiki generator
-    ├── SKILL.md
-    └── references/
-        └── template.html            # HTML template for wiki
+├── 📖 create-wiki/                  # Project wiki generator
+│   ├── SKILL.md
+│   └── references/
+│       └── template.html            # HTML template for wiki
+└── 🧠 compound/                     # Knowledge compounding
+    └── SKILL.md
 
 eval/                                 # 🧪 Skill evaluation framework
 ├── run-eval.sh                       # Entry point
