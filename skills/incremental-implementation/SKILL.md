@@ -1,6 +1,10 @@
 ---
 name: incremental-implementation
 description: Implements a plan, spec, or design doc by breaking it into small digestible chunks — working with the user to clarify, implement, and verify each one before moving on. Visualizes every change so the user stays fully informed and understands what was built and why. Use this skill whenever a user wants to implement a plan and you want to make sure they understand everything being built. Trigger on phrases like "implement the plan", "let's build this step by step", "execute this plan", "start implementing", "work through the design doc", or when picking up a plan from docs/plans/. Also use proactively when a task involves building multiple files or modules from a written spec. This skill exists specifically to prevent vibe-coding — where AI does a large batch of work the user ends up not understanding.
+relationships:
+  - target: compound
+    type: leads-to
+    label: "save implementation decisions"
 ---
 
 # Incremental Implementation

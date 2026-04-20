@@ -2,6 +2,13 @@
 name: review-diff
 description: Generate a Markdown review file with C4 architecture diagrams and code walkthrough for the current git changes
 allowed-tools: Bash(git *), Bash(mkdir *), Read, Glob, Grep, Write, Edit
+relationships:
+  - target: walkthrough
+    type: alternative
+    label: "conversational step-by-step"
+  - target: compound
+    type: leads-to
+    label: "save architectural decisions"
 ---
 
 # PR Review Markdown Generator

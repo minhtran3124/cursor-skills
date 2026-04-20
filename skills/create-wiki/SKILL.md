@@ -1,6 +1,10 @@
 ---
 name: create-wiki
 description: Deep-investigate a codebase and generate a single-page project wiki at .docs/index.html. Use this skill whenever the user asks to "create a wiki", "generate docs", "document this project", "explain this codebase", "make a project wiki", or wants a comprehensive HTML overview of a repository. Also trigger when the user says /create-wiki. Even if the user just says "wiki" in the context of documentation, use this skill.
+relationships:
+  - target: compound
+    type: leads-to
+    label: "surface patterns worth preserving"
 ---
 
 # Create Wiki

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Graph</title>
+  <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    header {
+      padding: 10px 20px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .header-title h1 { font-size: 15px; font-weight: 600; color: #c9d1d9; }
+    .header-title .subtitle { font-size: 11px; color: #8b949e; margin-top: 1px; }
+
+    /* ── Toolbar ─────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+      align-items: center;
+    }
+
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: #21262d;
+      color: #8b949e;
+      transition: all 0.15s;
+    }
+
+    .filter-btn .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .filter-btn.active { color: #c9d1d9; border-color: currentColor; }
+    .filter-btn:hover { color: #c9d1d9; }
+
+    .toolbar-divider {
+      width: 1px; height: 20px;
+      background: #30363d;
+      margin: 0 4px;
+    }
+
+    .icon-btn {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid #30363d;
+      background: #21262d;
+      color: #8b949e;
+    }
+
+    .icon-btn:hover { color: #c9d1d9; border-color: #58a6ff; }
+
+    /* ── Legend ─────────────────────────────────────── */
+    .legend {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 6px 20px;
+      background: #0d1117;
+      border-bottom: 1px solid #21262d;
+      flex-shrink: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #8b949e;
+    }
+
+    .legend-swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .legend-line { width: 22px; height: 2px; flex-shrink: 0; border-radius: 1px; }
+
+    .legend-line.dashed {
+      background: none;
+      border-top: 2px dashed;
+    }
+
+    /* ── Main layout ─────────────────────────────────── */
+    main { display: flex; flex: 1; overflow: hidden; }
+
+    #cy { flex: 1; cursor: grab; }
+    #cy:active { cursor: grabbing; }
+
+    /* ── Detail panel ────────────────────────────────── */
+    #panel {
+      width: 280px;
+      background: #161b22;
+      border-left: 1px solid #30363d;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    #panel.visible { display: flex; }
+
+    .panel-hero {
+      padding: 16px;
+      background: #1c2128;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    #panel-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #c9d1d9;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    #close-panel {
+      cursor: pointer;
+      color: #8b949e;
+      font-size: 16px;
+      background: none;
+      border: none;
+      flex-shrink: 0;
+      padding: 0;
+      line-height: 1;
+    }
+
+    #close-panel:hover { color: #e6edf3; }
+
+    .panel-body {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-section { display: flex; flex-direction: column; gap: 6px; }
+
+    .section-label {
+      font-size: 10px;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      font-weight: 600;
+    }
+
+    .trigger-badge {
+      display: inline-block;
+      background: #1f6feb18;
+      color: #58a6ff;
+      border: 1px solid #1f6feb40;
+      border-radius: 4px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      margin: 0 4px 4px 0;
+    }
+
+    #panel-desc {
+      font-size: 12px;
+      color: #8b949e;
+      line-height: 1.6;
+    }
+
+    .io-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .io-badge {
+      font-size: 11px;
+      color: #c9d1d9;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: #21262d;
+      border-radius: 3px;
+      padding: 2px 7px;
+    }
+
+    .rel-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .rel-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 7px 9px;
+      background: #21262d;
+      border-radius: 5px;
+      border-left: 3px solid transparent;
+    }
+
+    .rel-item-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+
+    .rel-arrow { font-size: 13px; font-weight: bold; flex-shrink: 0; }
+
+    .rel-target { color: #c9d1d9; font-weight: 500; }
+
+    .rel-type-badge {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: #30363d;
+      color: #8b949e;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .rel-label-text { font-size: 11px; color: #8b949e; font-style: italic; padding-left: 20px; }
+
+    .inferred-tag {
+      font-size: 9px;
+      color: #d9904a;
+      border: 1px solid #d9904a40;
+      border-radius: 2px;
+      padding: 0 4px;
+    }
+
+    /* ── Edge tooltip ────────────────────────────────── */
+    #edge-tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 7px 11px;
+      font-size: 12px;
+      color: #c9d1d9;
+      display: none;
+      z-index: 1000;
+      max-width: 240px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+
+    #edge-tooltip .tt-route {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+      font-size: 11px;
+    }
+
+    #edge-tooltip .tt-source { color: #79c0ff; font-weight: 600; }
+    #edge-tooltip .tt-arrow { color: #8b949e; }
+    #edge-tooltip .tt-target { color: #79c0ff; font-weight: 600; }
+    #edge-tooltip .tt-type { font-size: 10px; color: #8b949e; }
+    #edge-tooltip .tt-label { font-size: 11px; color: #e6edf3; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <h1>🗺️ Skill Graph</h1>
+    <div class="subtitle">Click nodes · Hover edges · Drag to reposition</div>
+  </div>
+
+  <div class="toolbar">
+    <button class="filter-btn active" id="filter-explicit" data-filter="explicit">
+      <span class="dot" style="background:#4a9d6f;"></span> Explicit
+    </button>
+    <button class="filter-btn active" id="filter-inferred" data-filter="inferred">
+      <span class="dot" style="background:#d9904a;"></span> Inferred
+    </button>
+    <div class="toolbar-divider"></div>
+    <button class="icon-btn" id="reset-btn">⟳ Reset</button>
+  </div>
+</header>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#1f6feb; border:2px solid #4a90d9;"></div>
+    Skill
+  </div>
+  <div class="legend-item">
+    <div class="legend-swatch" style="background:#0d2618; border:2px solid #4a9d6f;"></div>
+    Terminal
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background:#4a9d6f;"></div>
+    leads-to
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background:#bc8cff;"></div>
+    alternative
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background:#56d364;"></div>
+    complements
+  </div>
+  <div class="legend-item">
+    <div class="legend-line dashed" style="border-color:#d9904a;"></div>
+    inferred
+  </div>
+</div>
+
+<main>
+  <div id="cy"></div>
+
+  <div id="panel">
+    <div class="panel-hero">
+      <div id="panel-name"></div>
+      <button id="close-panel">✕</button>
+    </div>
+    <div class="panel-body">
+
+      <div class="panel-section" id="panel-triggers-section">
+        <div class="section-label">Trigger</div>
+        <div id="panel-triggers"></div>
+      </div>
+
+      <div class="panel-section" id="panel-desc-section">
+        <div class="section-label">Description</div>
+        <div id="panel-desc"></div>
+      </div>
+
+      <div class="panel-section" id="panel-inputs-section">
+        <div class="section-label">Reads</div>
+        <div class="io-wrap" id="panel-inputs"></div>
+      </div>
+
+      <div class="panel-section" id="panel-outputs-section">
+        <div class="section-label">Writes</div>
+        <div class="io-wrap" id="panel-outputs"></div>
+      </div>
+
+      <div class="panel-section" id="panel-rels-section">
+        <div class="section-label">Relationships</div>
+        <div class="rel-list" id="panel-rels"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<div id="edge-tooltip">
+  <div class="tt-route">
+    <span class="tt-source" id="tt-source"></span>
+    <span class="tt-arrow">→</span>
+    <span class="tt-target" id="tt-target"></span>
+  </div>
+  <div class="tt-type" id="tt-type"></div>
+  <div class="tt-label" id="tt-label"></div>
+</div>
+
+<script>
+  const graphData = /* GRAPH_DATA_JSON */;
+
+  // ── Edge type colors ───────────────────────────────
+  const EDGE_COLORS = {
+    'leads-to':    '#4a9d6f',
+    'alternative': '#bc8cff',
+    'complements': '#56d364',
+    'feeds-from':  '#e3b341',
+    'analyzes':    '#8b949e',
+  };
+
+  const REL_BORDER_COLORS = {
+    'leads-to':    '#4a9d6f',
+    'alternative': '#bc8cff',
+    'complements': '#56d364',
+    'feeds-from':  '#e3b341',
+    'analyzes':    '#8b949e',
+  };
+
+  // ── Build Cytoscape elements ───────────────────────
+  const elements = [];
+
+  graphData.skills.forEach(s => {
+    elements.push({
+      group: 'nodes',
+      data: {
+        id: s.id,
+        label: s.label || s.id,
+        description: s.description || '',
+        triggers: s.triggers || [],
+        inputs: s.inputs || [],
+        outputs: s.outputs || [],
+      }
+    });
+  });
+
+  graphData.edges.forEach((e, i) => {
+    const color = e.inferred ? '#d9904a' : (EDGE_COLORS[e.type] || '#4a9d6f');
+    elements.push({
+      group: 'edges',
+      data: {
+        id: `e${i}`,
+        source: e.source,
+        target: e.target,
+        label: e.label || '',
+        type: e.type || 'leads-to',
+        inferred: !!e.inferred,
+        edgeColor: color,
+      }
+    });
+  });
+
+  // Terminal = no outgoing leads-to
+  const hasOutLeadsTo = new Set(
+    graphData.edges.filter(e => e.type === 'leads-to').map(e => e.source)
+  );
+
+  // ── Init Cytoscape ─────────────────────────────────
+  const cy = cytoscape({
+    container: document.getElementById('cy'),
+    elements,
+    style: [
+      {
+        selector: 'node',
+        style: {
+          'background-color': '#1a2744',
+          'border-color': '#4a90d9',
+          'border-width': 2,
+          'color': '#c9d1d9',
+          'label': 'data(label)',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'font-size': '12px',
+          'font-weight': '500',
+          'width': 160,
+          'height': 50,
+          'shape': 'roundrectangle',
+          'text-wrap': 'wrap',
+          'text-max-width': 140,
+          'font-family': '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+          'transition-property': 'background-color, border-color, border-width',
+          'transition-duration': '0.15s',
+        }
+      },
+      {
+        selector: 'node:selected',
+        style: {
+          'background-color': '#1f3a6e',
+          'border-color': '#79c0ff',
+          'border-width': 3,
+          'color': '#e6edf3',
+        }
+      },
+      {
+        selector: 'node.dimmed',
+        style: { 'opacity': 0.25 }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 2,
+          'line-color': 'data(edgeColor)',
+          'target-arrow-color': 'data(edgeColor)',
+          'target-arrow-shape': 'triangle',
+          'arrow-scale': 1.1,
+          'curve-style': 'bezier',
+          'label': '',           // labels hidden — shown in tooltip on hover
+          'opacity': 0.85,
+          'transition-property': 'opacity, width',
+          'transition-duration': '0.15s',
+        }
+      },
+      {
+        selector: 'edge[?inferred]',
+        style: {
+          'line-style': 'dashed',
+          'line-dash-pattern': [6, 4],
+          'opacity': 0.55,
+        }
+      },
+      {
+        selector: 'edge.dimmed',
+        style: { 'opacity': 0.08 }
+      },
+      {
+        selector: 'edge.highlighted',
+        style: {
+          'width': 3,
+          'opacity': 1,
+        }
+      },
+    ],
+    layout: {
+      name: 'cose',
+      animate: true,
+      animationDuration: 500,
+      padding: 60,
+      nodeRepulsion: () => 900000,
+      idealEdgeLength: () => 220,
+      edgeElasticity: () => 100,
+      gravity: 60,
+      numIter: 1000,
+      randomize: false,
+      avoidOverlap: true,
+      nodeDimensionsIncludeLabels: true,
+      fit: true,
+    }
+  });
+
+  // Mark terminal nodes
+  cy.nodes().forEach(node => {
+    if (!hasOutLeadsTo.has(node.id())) {
+      node.style({
+        'background-color': '#0d2618',
+        'border-color': '#4a9d6f',
+        'border-width': 3,
+      });
+    }
+  });
+
+  // ── Edge tooltip ───────────────────────────────────
+  const tooltip   = document.getElementById('edge-tooltip');
+  const ttSource  = document.getElementById('tt-source');
+  const ttTarget  = document.getElementById('tt-target');
+  const ttType    = document.getElementById('tt-type');
+  const ttLabel   = document.getElementById('tt-label');
+
+  cy.on('mouseover', 'edge', function(e) {
+    const d = e.target.data();
+    ttSource.textContent = d.source;
+    ttTarget.textContent = d.target;
+    ttType.textContent   = d.type + (d.inferred ? ' · inferred' : '');
+    ttLabel.textContent  = d.label || '';
+    tooltip.style.display = 'block';
+    e.target.addClass('highlighted');
+  });
+
+  cy.on('mousemove', 'edge', function(e) {
+    const orig = e.originalEvent;
+    if (orig) {
+      tooltip.style.left = (orig.clientX + 14) + 'px';
+      tooltip.style.top  = (orig.clientY - 10) + 'px';
+    }
+  });
+
+  cy.on('mouseout', 'edge', function(e) {
+    tooltip.style.display = 'none';
+    e.target.removeClass('highlighted');
+  });
+
+  // ── Node hover: dim unconnected ────────────────────
+  cy.on('mouseover', 'node', function(e) {
+    const node = e.target;
+    const connected = new Set([node.id()]);
+    node.connectedEdges().forEach(edge => {
+      connected.add(edge.data('source'));
+      connected.add(edge.data('target'));
+    });
+    cy.nodes().forEach(n => {
+      if (!connected.has(n.id())) n.addClass('dimmed');
+    });
+    cy.edges().forEach(ed => {
+      if (!node.connectedEdges().has(ed)) ed.addClass('dimmed');
+    });
+  });
+
+  cy.on('mouseout', 'node', function() {
+    cy.elements().removeClass('dimmed');
+  });
+
+  // ── Detail panel ───────────────────────────────────
+  const panel = document.getElementById('panel');
+
+  cy.on('tap', 'node', function(evt) {
+    const d = evt.target.data();
+
+    document.getElementById('panel-name').textContent = d.label;
+
+    const triggersEl = document.getElementById('panel-triggers');
+    triggersEl.innerHTML = d.triggers.map(t =>
+      `<span class="trigger-badge">${t}</span>`
+    ).join('');
+    document.getElementById('panel-triggers-section').style.display =
+      d.triggers.length ? '' : 'none';
+
+    document.getElementById('panel-desc').textContent = d.description;
+    document.getElementById('panel-desc-section').style.display =
+      d.description ? '' : 'none';
+
+    const inputsEl = document.getElementById('panel-inputs');
+    inputsEl.innerHTML = d.inputs.map(i =>
+      `<span class="io-badge">${i}</span>`
+    ).join('');
+    document.getElementById('panel-inputs-section').style.display =
+      d.inputs.length ? '' : 'none';
+
+    const outputsEl = document.getElementById('panel-outputs');
+    outputsEl.innerHTML = d.outputs.map(o =>
+      `<span class="io-badge">${o}</span>`
+    ).join('');
+    document.getElementById('panel-outputs-section').style.display =
+      d.outputs.length ? '' : 'none';
+
+    const relEdges = evt.target.connectedEdges();
+    const relsEl = document.getElementById('panel-rels');
+    relsEl.innerHTML = '';
+
+    relEdges.forEach(edge => {
+      const ed = edge.data();
+      const isOut = ed.source === d.id;
+      const other = isOut ? ed.target : ed.source;
+      const arrowColor = isOut
+        ? (EDGE_COLORS[ed.type] || '#4a9d6f')
+        : '#8b949e';
+      const borderColor = REL_BORDER_COLORS[ed.type] || '#4a9d6f';
+      const inferredTag = ed.inferred
+        ? '<span class="inferred-tag">inferred</span>' : '';
+
+      relsEl.innerHTML += `
+        <div class="rel-item" style="border-left-color:${borderColor}">
+          <div class="rel-item-row">
+            <span class="rel-arrow" style="color:${arrowColor}">${isOut ? '→' : '←'}</span>
+            <span class="rel-target">${other}</span>
+            ${inferredTag}
+            <span class="rel-type-badge">${ed.type}</span>
+          </div>
+          <div class="rel-label-text">${ed.label}</div>
+        </div>`;
+    });
+
+    document.getElementById('panel-rels-section').style.display =
+      relEdges.length ? '' : 'none';
+
+    panel.classList.add('visible');
+  });
+
+  document.getElementById('close-panel').addEventListener('click', () => {
+    panel.classList.remove('visible');
+    cy.elements().unselect();
+  });
+
+  cy.on('tap', function(e) {
+    if (e.target === cy) panel.classList.remove('visible');
+  });
+
+  // ── Filter buttons ─────────────────────────────────
+  let showExplicit = true;
+  let showInferred = true;
+
+  function applyFilters() {
+    cy.edges().forEach(edge => {
+      const isInferred = edge.data('inferred');
+      const visible = isInferred ? showInferred : showExplicit;
+      edge.style('display', visible ? 'element' : 'none');
+    });
+  }
+
+  document.getElementById('filter-explicit').addEventListener('click', function() {
+    showExplicit = !showExplicit;
+    this.classList.toggle('active', showExplicit);
+    applyFilters();
+  });
+
+  document.getElementById('filter-inferred').addEventListener('click', function() {
+    showInferred = !showInferred;
+    this.classList.toggle('active', showInferred);
+    applyFilters();
+  });
+
+  // ── Reset layout ───────────────────────────────────
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    cy.layout({
+      name: 'cose',
+      animate: true,
+      animationDuration: 500,
+      padding: 60,
+      nodeRepulsion: () => 900000,
+      idealEdgeLength: () => 220,
+      edgeElasticity: () => 100,
+      gravity: 60,
+      numIter: 1000,
+      randomize: true,
+      fit: true,
+    }).run();
+  });
+</script>
+</body>
+</html>
