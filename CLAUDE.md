@@ -52,6 +52,7 @@ relationships:
 
 | Skill | Trigger | Reads | Writes |
 |-------|---------|-------|--------|
+| `exploring` | `/exploring` | codebase (grep scout) | `specs/YYYY-MM-DD/<feature>/context.md` |
 | `walkthrough` | `/walkthrough` | git diff | — (conversational) |
 | `review-diff` | `/review-diff` | git diff | `.review/review.md` |
 | `incremental-implementation` | natural language | `docs/plans/` | `progress.md`, implementation files |
@@ -63,6 +64,7 @@ relationships:
 ### Workflow relationships
 
 ```
+exploring ───────────────────────────────────────────> brainstorming (specs/context.md)
 preflight ──────────────────────────────────────────> compound
 walkthrough ─────────────────────────────────────┐
 review-diff ─────────────────────────────────────+──> compound ──> docs/solutions/
@@ -73,7 +75,7 @@ walkthrough <──[alternative]──> review-diff
 compound    <──[complements]──> create-wiki
 ```
 
-Entry points (no incoming leads-to): `preflight`, `walkthrough`, `review-diff`, `create-wiki`, `incremental-implementation`, `visual`  
+Entry points (no incoming leads-to): `exploring`, `preflight`, `walkthrough`, `review-diff`, `create-wiki`, `incremental-implementation`, `visual`  
 Terminal node (knowledge sink): `compound`
 
 ---
@@ -82,6 +84,7 @@ Terminal node (knowledge sink): `compound`
 
 | Path | Created by | Purpose |
 |------|------------|---------|
+| `specs/YYYY-MM-DD/<feature>/context.md` | `exploring` | Locked decisions and feature boundary before design |
 | `.review/review.md` | `review-diff` | Markdown diff review with architecture diagrams |
 | `progress.md` | `incremental-implementation` | Live implementation progress log |
 | `.docs/index.html` | `create-wiki` | Single-page project wiki |

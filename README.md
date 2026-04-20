@@ -8,6 +8,7 @@ A collection of custom AI skills for [Cursor IDE](https://cursor.com) and [Claud
 
 | Skill | Trigger | What it does |
 |-------|---------|-------------|
+| `exploring` | `/exploring` | Extracts locked decisions through Socratic dialogue before design begins — writes `specs/` context as the single source of truth |
 | `walkthrough` | `/walkthrough` | Walks you through git changes file-by-file, like a senior engineer explaining a PR |
 | `review-diff` | `/review-diff` | Generates a Markdown review with C4 architecture diagrams and code walkthrough |
 | `incremental-implementation` | describe a plan | Builds features step-by-step, verifying each chunk before moving on |
@@ -34,6 +35,7 @@ cp -r skills/walkthrough your-project/.cursor/skills/
 **Step 3 — Use in Cursor or Claude Code**
 
 ```
+/exploring            → extract decisions through Socratic dialogue before design
 /walkthrough          → explain git changes on current branch
 /review-diff          → generate a visual review of uncommitted changes
 /preflight            → research-first check before building a feature
@@ -86,6 +88,49 @@ You                                    AI
  |         7. Summary of all changes    |
  |  <---------------------------------- |
 ```
+
+## The `/exploring` Skill — Requirements Before Design
+
+`/exploring` runs a structured Socratic dialogue to lock product decisions before any design or implementation starts. It writes a `specs/YYYY-MM-DD/<feature>/context.md` file — the single source of truth the `brainstorming` skill reads as its starting point.
+
+**Use when:** requirements are fuzzy, product decisions are unstated, or before invoking a design skill when intent is unclear.
+
+**Scope tiers** — assessed automatically from the request:
+
+| Score | Tier | Question budget |
+|-------|------|----------------|
+| 0–1 | Quick | ≤4 questions |
+| 2–3 | Standard | ≤8 questions |
+| 4–5 | Deep | ≤12 questions |
+
+**Typical workflow:**
+
+```
+/exploring "add a notification system"
+      |
+      v
+  1. Score the request — classify scope tier
+  2. Classify domain type (SEE / CALL / RUN / READ / ORGANIZE)
+  3. Quick codebase grep — surface reusable patterns
+  4. Ask one question at a time — lock each decision (D1, D2...)
+  5. Write specs/YYYY-MM-DD/<feature>/context.md
+      |
+      v
+  brainstorming  ← reads context.md as design starting point
+```
+
+**context.md structure:**
+
+| Section | What it captures |
+|---------|----------------|
+| Feature Boundary | One sentence: what this delivers and where it ends |
+| Locked Decisions | All decisions with stable IDs (D1, D2...) and rationale |
+| Agent's Discretion | Areas explicitly delegated to implementation |
+| Existing Code Context | File paths and patterns found during the grep scout |
+| Outstanding Questions | Blockers to resolve before brainstorming vs. deferred |
+| Deferred Ideas | Scope-creep items noted for future work |
+
+The gray-area probes used during exploration live at `skills/exploring/references/gray-area-probes.md`.
 
 ## The `/visual` Skill — Skill Dashboard
 
@@ -168,6 +213,10 @@ cp -r skills/walkthrough ~/.cursor/skills/
 
 ```
 skills/
+├── exploring/                    # Requirements extractor (Socratic dialogue)
+│   ├── SKILL.md
+│   └── references/
+│       └── gray-area-probes.md
 ├── walkthrough/                  # Git change explainer
 │   └── SKILL.md
 ├── review-diff/                  # Visual diff reviewer
