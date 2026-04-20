@@ -13,6 +13,7 @@ A collection of custom AI skills for [Cursor IDE](https://cursor.com). These ski
 | 🧱 `incremental-implementation` | Builds features step-by-step, checking with you before each chunk |
 | 📖 `create-wiki` | Generates a single-page HTML wiki documenting your entire project |
 | 🧠 `compound` | Transforms session learnings into persistent `docs/solutions/` docs — bugs, patterns, decisions |
+| 🗺️ `visual` | Generates a skill relationship graph — Mermaid markdown + interactive HTML browser view |
 
 ## ⚡ Quick Start
 
@@ -39,6 +40,7 @@ Open your project in Cursor, then type a command in the AI chat:
 /review-diff          → generate a visual review of uncommitted changes
 /create-wiki          → generate project documentation
 /compound             → save session learnings to docs/solutions/
+/visual               → generate skill relationship graph
 ```
 
 For `incremental-implementation`, just describe a plan and ask Cursor to "implement this step by step".
@@ -126,8 +128,12 @@ skills/
 │   ├── SKILL.md
 │   └── references/
 │       └── template.html            # HTML template for wiki
-└── 🧠 compound/                     # Knowledge compounding
-    └── SKILL.md
+├── 🧠 compound/                     # Knowledge compounding
+│   └── SKILL.md
+└── 🗺️ visual/                       # Skill graph visualizer
+    ├── SKILL.md
+    └── references/
+        └── graph-template.html      # Cytoscape.js HTML template
 
 eval/                                 # 🧪 Skill evaluation framework
 ├── run-eval.sh                       # Entry point
