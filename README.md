@@ -11,6 +11,7 @@ A collection of custom AI skills for [Cursor IDE](https://cursor.com). These ski
 | 🚶 `walkthrough` | Walks you through git changes file-by-file, like a senior engineer explaining a PR |
 | 🔍 `review-diff` | Generates a visual Markdown review of your code changes with architecture diagrams |
 | 🧱 `incremental-implementation` | Builds features step-by-step, checking with you before each chunk |
+| ✈️ `preflight` | Research-first check before building — maps the repo, finds reusable code, verifies docs, and recommends the lightest credible path |
 | 📖 `create-wiki` | Generates a single-page HTML wiki documenting your entire project |
 | 🧠 `compound` | Transforms session learnings into persistent `docs/solutions/` docs — bugs, patterns, decisions |
 | 🗺️ `visual` | Generates a skill dashboard with cards, interactive graph, and workflow chains |
@@ -38,6 +39,7 @@ Open your project in Cursor, then type a command in the AI chat:
 ```
 /walkthrough          → explain git changes on current branch
 /review-diff          → generate a visual review of uncommitted changes
+/preflight            → research-first check before building a feature
 /create-wiki          → generate project documentation
 /compound             → save session learnings to docs/solutions/
 /visual               → generate skill relationship graph
@@ -156,6 +158,11 @@ skills/
 │   └── SKILL.md
 ├── 🧱 incremental-implementation/   # Step-by-step builder
 │   └── SKILL.md
+├── ✈️ preflight/                    # Research-first feature check
+│   ├── SKILL.md
+│   └── references/
+│       ├── research-brief-template.md  # Fill-in template before every implementation
+│       └── pressure-scenarios.md       # Guardrail stress tests
 ├── 📖 create-wiki/                  # Project wiki generator
 │   ├── SKILL.md
 │   └── references/
