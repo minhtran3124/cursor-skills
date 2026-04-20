@@ -1,40 +1,37 @@
-# 🎯 Cursor Skills
+# Cursor Skills
 
-A collection of custom AI skills for [Cursor IDE](https://cursor.com). These skills teach Cursor's AI agent how to perform specific tasks better.
+A collection of custom AI skills for [Cursor IDE](https://cursor.com) and [Claude Code](https://claude.ai/code). These skills teach the AI agent how to perform specific tasks with consistent, structured output.
 
-> 💡 **New to AI skills?** Think of them as "cheat sheets" you give to Cursor's AI — each skill tells it exactly how to do a specific job well.
+> **New to AI skills?** Think of them as instruction files you drop into your project — each skill tells the AI exactly how to do a specific job well.
 
-## 📦 What's Inside
+## Skills
 
-| Skill | What it does |
-|-------|-------------|
-| 🚶 `walkthrough` | Walks you through git changes file-by-file, like a senior engineer explaining a PR |
-| 🔍 `review-diff` | Generates a visual Markdown review of your code changes with architecture diagrams |
-| 🧱 `incremental-implementation` | Builds features step-by-step, checking with you before each chunk |
-| ✈️ `preflight` | Research-first check before building — maps the repo, finds reusable code, verifies docs, and recommends the lightest credible path |
-| 📖 `create-wiki` | Generates a single-page HTML wiki documenting your entire project |
-| 🧠 `compound` | Transforms session learnings into persistent `docs/solutions/` docs — bugs, patterns, decisions |
-| 🗺️ `visual` | Generates a skill dashboard with cards, interactive graph, and workflow chains |
+| Skill | Trigger | What it does |
+|-------|---------|-------------|
+| `walkthrough` | `/walkthrough` | Walks you through git changes file-by-file, like a senior engineer explaining a PR |
+| `review-diff` | `/review-diff` | Generates a Markdown review with C4 architecture diagrams and code walkthrough |
+| `incremental-implementation` | describe a plan | Builds features step-by-step, verifying each chunk before moving on |
+| `preflight` | `/preflight` | Research-first check before building — maps the repo, finds reusable code, recommends the lightest path |
+| `create-wiki` | `/create-wiki` | Generates a single-page HTML wiki documenting your entire project |
+| `compound` | `/compound` | Transforms session learnings into persistent `docs/solutions/` docs — bugs, patterns, decisions |
+| `visual` | `/visual` | Generates a skill dashboard with cards, interactive graph, and workflow chains |
 
-## ⚡ Quick Start
+## Quick Start
 
-### Step 1 — Clone this repo
+**Step 1 — Clone this repo**
 
 ```bash
 git clone <this-repo-url>
 ```
 
-### Step 2 — Copy skills into your project
+**Step 2 — Copy skills into your project**
 
 ```bash
-# Example: add the walkthrough skill to your project
 mkdir -p your-project/.cursor/skills
 cp -r skills/walkthrough your-project/.cursor/skills/
 ```
 
-### Step 3 — Use in Cursor
-
-Open your project in Cursor, then type a command in the AI chat:
+**Step 3 — Use in Cursor or Claude Code**
 
 ```
 /walkthrough          → explain git changes on current branch
@@ -42,72 +39,63 @@ Open your project in Cursor, then type a command in the AI chat:
 /preflight            → research-first check before building a feature
 /create-wiki          → generate project documentation
 /compound             → save session learnings to docs/solutions/
-/visual               → generate skill relationship graph
+/visual               → generate skill relationship graph and dashboard
 ```
 
-For `incremental-implementation`, just describe a plan and ask Cursor to "implement this step by step".
+For `incremental-implementation`, describe a plan and ask the AI to "implement this step by step".
 
-## 🔄 How It Works
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    YOUR PROJECT                         │
-│                                                         │
-│   .cursor/skills/                                       │
-│   ├── walkthrough/SKILL.md    ← skill instructions      │
-│   ├── review-diff/SKILL.md                              │
-│   └── ...                                               │
-│                                                         │
-└────────────────────┬────────────────────────────────────┘
-                     │
-                     ▼
-┌─────────────────────────────────────────────────────────┐
-│                  CURSOR IDE                              │
-│                                                         │
-│   1. 🧑 You type /walkthrough in AI chat                │
-│   2. 🤖 Cursor reads SKILL.md for instructions          │
-│   3. ✨ AI follows the skill to do the job              │
-│   4. 📄 You get structured, high-quality output         │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-## 🧪 Example: Using `/walkthrough`
+## How It Works
 
 ```
-You                                    Cursor AI
- │                                         │
- │  1. Make changes or switch branch       │
- │                                         │
- │  2. Type: /walkthrough                  │
- │  ──────────────────────────────────►    │
- │                                         │
- │         3. Lists all changed files      │
- │    ◄────────────────────────────────    │
- │                                         │
- │         4. Explains file #1             │
- │            (before → after + why)       │
- │    ◄────────────────────────────────    │
- │                                         │
- │  5. "next" or ask a question            │
- │  ──────────────────────────────────►    │
- │                                         │
- │         6. Explains file #2 ...         │
- │    ◄────────────────────────────────    │
- │                                         │
- │         7. Summary of all changes       │
- │    ◄────────────────────────────────    │
+YOUR PROJECT
+  .cursor/skills/
+  ├── walkthrough/SKILL.md    ← skill instructions
+  ├── review-diff/SKILL.md
+  └── ...
+         |
+         v
+  Cursor / Claude Code reads SKILL.md on trigger
+         |
+         v
+  AI follows the steps and produces structured output
 ```
 
-## 🗺️ Introducing `/visual` — Skill Dashboard
+## Example: Using `/walkthrough`
 
-`/visual` maps every skill in your project into a relationship graph and generates two browser files you can open directly:
+```
+You                                    AI
+ |                                      |
+ |  1. Make changes or switch branch    |
+ |                                      |
+ |  2. Type: /walkthrough               |
+ |  ----------------------------------> |
+ |                                      |
+ |         3. Lists all changed files   |
+ |  <---------------------------------- |
+ |                                      |
+ |         4. Explains file #1          |
+ |            (before / after / why)    |
+ |  <---------------------------------- |
+ |                                      |
+ |  5. "next" or ask a question         |
+ |  ----------------------------------> |
+ |                                      |
+ |         6. Explains file #2 ...      |
+ |  <---------------------------------- |
+ |                                      |
+ |         7. Summary of all changes    |
+ |  <---------------------------------- |
+```
+
+## The `/visual` Skill — Skill Dashboard
+
+`/visual` maps every skill in your project into a relationship graph and generates browser files you can open directly:
 
 | Output | What it shows |
 |--------|--------------|
 | `.docs/skill-dashboard.html` | Three-tab dashboard: skill cards, interactive graph, workflow chains |
 | `.docs/skill-graph.html` | Standalone interactive graph |
-| `docs/SKILL_GRAPH.md` | Mermaid diagrams + skill index table |
+| `docs/SKILL_GRAPH.md` | Mermaid diagrams and skill index table |
 
 **Skills tab** — a card for every skill with its trigger, description, reads/writes, and outgoing relationships. Click any card to open a full detail view: complete description, how-to-use guide, I/O breakdown, and all relationships with direction and context.
 
@@ -129,63 +117,59 @@ relationships:
 
 When no explicit metadata is present, `/visual` infers relationships from skill content and marks them as dashed edges.
 
----
+## Example: Using `/create-wiki`
 
-## 📖 Example: Using `/create-wiki`
+1. Open your project in Cursor
+2. Open AI chat and type: `/create-wiki`
+3. AI explores your codebase automatically
+4. Generates `.docs/index.html`
+5. Open that file in a browser
 
-1. 📂 Open your project in Cursor
-2. 💬 Open AI chat and type: `/create-wiki`
-3. 🔍 AI explores your codebase automatically
-4. 📝 Generates `.docs/index.html`
-5. 🌐 Open that file in a browser — done!
+## Adding a Skill to All Projects
 
-## 🌍 Adding a Skill to All Projects
-
-Want a skill available everywhere? Copy it to the global directory:
+Copy it to the global Cursor skills directory:
 
 ```bash
 mkdir -p ~/.cursor/skills
 cp -r skills/walkthrough ~/.cursor/skills/
 ```
 
-## 📁 Folder Structure
+## Repository Structure
 
 ```
 skills/
-├── 🚶 walkthrough/                  # Git change explainer
+├── walkthrough/                  # Git change explainer
 │   └── SKILL.md
-├── 🔍 review-diff/                  # Visual diff reviewer
+├── review-diff/                  # Visual diff reviewer
 │   └── SKILL.md
-├── 🧱 incremental-implementation/   # Step-by-step builder
+├── incremental-implementation/   # Step-by-step builder
 │   └── SKILL.md
-├── ✈️ preflight/                    # Research-first feature check
+├── preflight/                    # Research-first feature check
 │   ├── SKILL.md
 │   └── references/
-│       ├── research-brief-template.md  # Fill-in template before every implementation
-│       └── pressure-scenarios.md       # Guardrail stress tests
-├── 📖 create-wiki/                  # Project wiki generator
+│       ├── research-brief-template.md
+│       └── pressure-scenarios.md
+├── create-wiki/                  # Project wiki generator
 │   ├── SKILL.md
 │   └── references/
-│       └── template.html            # HTML template for wiki
-├── 🧠 compound/                     # Knowledge compounding
+│       └── template.html
+├── compound/                     # Knowledge compounding
 │   └── SKILL.md
-└── 🗺️ visual/                       # Skill graph visualizer
+└── visual/                       # Skill graph visualizer
     ├── SKILL.md
     └── references/
-        ├── dashboard-template.html  # Three-tab dashboard (skills + graph + workflows)
-        └── graph-template.html      # Standalone Cytoscape.js graph
+        ├── dashboard-template.html  # Three-tab dashboard
+        └── graph-template.html      # Standalone graph
 
-eval/                                 # 🧪 Skill evaluation framework
-├── run-eval.sh                       # Entry point
-├── fixture-app/                      # Test codebase (Flask task API)
-└── scenarios/                        # One per skill (setup + validate + checklist)
+eval/                             # Skill evaluation framework
+├── run-eval.sh                   # Entry point
+├── fixture-app/                  # Test codebase (Flask task API)
+└── scenarios/                    # One per skill (setup + validate + checklist)
 ```
 
-> 📌 Each skill is just a `SKILL.md` file — that's what Cursor reads to know how the skill works. No install, no config, just copy and go!
+> Each skill is a `SKILL.md` file — no install, no config, just copy and go.
 
-## 🧪 Evaluating Skills
-
-Want to make sure a skill runs correctly and produces consistent output? We have an evaluation framework for that!
+## Evaluating Skills
 
 ```bash
 # 1. Set up a test scenario
@@ -199,16 +183,6 @@ bash eval/run-eval.sh review-diff validate
 
 Available scenarios: `review-diff`, `walkthrough`, `create-wiki`, `incremental-implementation`
 
-👉 See [eval/README.md](eval/README.md) for the full step-by-step guide.
+See [eval/README.md](eval/README.md) for the full guide.
 
-## 🚀 Coming Soon
-
-- 🧪 `test-generator` — Auto-generate unit tests for your code
-- 💬 `commit-message` — Write clean commit messages from your diffs
-- 🔧 `refactor` — Suggest and apply refactoring patterns
-- 🐛 `explain-error` — Break down error messages and suggest fixes
-- 📡 `api-docs` — Generate API documentation from route files
-- 👀 `code-review` — Review code like a senior engineer with actionable feedback
-- 📦 `migration-guide` — Help migrate between framework versions
-
-> ✨ Have an idea for a new skill? Feel free to contribute!
+Have an idea for a new skill? Feel free to contribute.
