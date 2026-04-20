@@ -244,6 +244,98 @@
       padding: 0 4px;
     }
 
+    /* ── Node tooltip ────────────────────────────────── */
+    #node-tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 11px 14px;
+      display: none;
+      z-index: 1000;
+      width: 240px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.65);
+    }
+
+    .nt-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e6edf3;
+      margin-bottom: 5px;
+    }
+
+    .nt-triggers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .nt-trigger-tag {
+      font-size: 10px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #58a6ff;
+      background: #1f6feb18;
+      border: 1px solid #1f6feb40;
+      border-radius: 3px;
+      padding: 1px 6px;
+    }
+
+    .nt-divider {
+      height: 1px;
+      background: #30363d;
+      margin: 6px 0;
+    }
+
+    .nt-desc {
+      font-size: 11px;
+      color: #8b949e;
+      line-height: 1.55;
+      margin-bottom: 7px;
+    }
+
+    .nt-io {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .nt-io-row {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 3px;
+    }
+
+    .nt-io-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8b949e;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .nt-io-badge {
+      font-size: 10px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #c9d1d9;
+      background: #21262d;
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+
+    .nt-hint {
+      font-size: 9px;
+      color: #4a9d6f;
+      margin-top: 6px;
+      text-align: right;
+      opacity: 0.8;
+    }
+
     /* ── Edge tooltip ────────────────────────────────── */
     #edge-tooltip {
       position: fixed;
@@ -280,7 +372,7 @@
 <header>
   <div class="header-title">
     <h1>🗺️ Skill Graph</h1>
-    <div class="subtitle">Click nodes · Hover edges · Drag to reposition</div>
+    <div class="subtitle">Hover nodes · Click for details · Hover edges · Drag to reposition</div>
   </div>
 
   <div class="toolbar">
@@ -360,6 +452,15 @@
     </div>
   </div>
 </main>
+
+<div id="node-tooltip">
+  <div class="nt-name" id="nt-name"></div>
+  <div class="nt-triggers" id="nt-triggers"></div>
+  <div class="nt-divider"></div>
+  <div class="nt-desc" id="nt-desc"></div>
+  <div id="nt-io-section"></div>
+  <div class="nt-hint">Click for full details →</div>
+</div>
 
 <div id="edge-tooltip">
   <div class="tt-route">
@@ -562,9 +663,52 @@
     e.target.removeClass('highlighted');
   });
 
-  // ── Node hover: dim unconnected ────────────────────
+  // ── Node tooltip ───────────────────────────────────
+  const nodeTooltip = document.getElementById('node-tooltip');
+  let nodeTooltipTimer = null;
+  let tooltipNode = null;
+
+  function showNodeTooltip(node, clientX, clientY) {
+    const d = node.data();
+
+    document.getElementById('nt-name').textContent = d.label;
+
+    document.getElementById('nt-triggers').innerHTML =
+      d.triggers.map(t => `<span class="nt-trigger-tag">${t}</span>`).join('');
+
+    document.getElementById('nt-desc').textContent = d.description || '';
+
+    const ioSection = document.getElementById('nt-io-section');
+    ioSection.innerHTML = '';
+    if (d.inputs.length) {
+      ioSection.innerHTML += `<div class="nt-io-row">
+        <span class="nt-io-label">Reads</span>
+        ${d.inputs.map(i => `<span class="nt-io-badge">${i}</span>`).join('')}
+      </div>`;
+    }
+    if (d.outputs.length) {
+      ioSection.innerHTML += `<div class="nt-io-row">
+        <span class="nt-io-label">Writes</span>
+        ${d.outputs.map(o => `<span class="nt-io-badge">${o}</span>`).join('')}
+      </div>`;
+    }
+
+    // Position: prefer right of cursor, flip left if near right edge
+    const tw = 240 + 20;
+    const left = clientX + 16 + tw > window.innerWidth
+      ? clientX - tw + 6
+      : clientX + 16;
+    nodeTooltip.style.left = left + 'px';
+    nodeTooltip.style.top  = (clientY - 10) + 'px';
+    nodeTooltip.style.display = 'block';
+  }
+
+  // ── Node hover: tooltip + dim unconnected ──────────
   cy.on('mouseover', 'node', function(e) {
     const node = e.target;
+    tooltipNode = node;
+
+    // Dim unconnected
     const connected = new Set([node.id()]);
     node.connectedEdges().forEach(edge => {
       connected.add(edge.data('source'));
@@ -576,10 +720,41 @@
     cy.edges().forEach(ed => {
       if (!node.connectedEdges().has(ed)) ed.addClass('dimmed');
     });
+
+    // Show tooltip after short delay (avoids flicker while dragging)
+    clearTimeout(nodeTooltipTimer);
+    const orig = e.originalEvent;
+    nodeTooltipTimer = setTimeout(() => {
+      if (tooltipNode === node && orig) {
+        showNodeTooltip(node, orig.clientX, orig.clientY);
+      }
+    }, 220);
+  });
+
+  cy.on('mousemove', 'node', function(e) {
+    if (nodeTooltip.style.display === 'block') {
+      const orig = e.originalEvent;
+      if (orig) {
+        const tw = 240 + 20;
+        const left = orig.clientX + 16 + tw > window.innerWidth
+          ? orig.clientX - tw + 6
+          : orig.clientX + 16;
+        nodeTooltip.style.left = left + 'px';
+        nodeTooltip.style.top  = (orig.clientY - 10) + 'px';
+      }
+    }
   });
 
   cy.on('mouseout', 'node', function() {
+    clearTimeout(nodeTooltipTimer);
+    tooltipNode = null;
+    nodeTooltip.style.display = 'none';
     cy.elements().removeClass('dimmed');
+  });
+
+  cy.on('grab', 'node', function() {
+    clearTimeout(nodeTooltipTimer);
+    nodeTooltip.style.display = 'none';
   });
 
   // ── Detail panel ───────────────────────────────────

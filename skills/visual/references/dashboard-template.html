@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Dashboard</title>
+  <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: stretch;
+      padding: 0 20px;
+      height: 46px;
+      flex-shrink: 0;
+      gap: 24px;
+    }
+
+    .logo {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e6edf3;
+      display: flex;
+      align-items: center;
+    }
+
+    nav { display: flex; }
+
+    .tab-btn {
+      padding: 0 14px;
+      height: 46px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #8b949e;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.12s;
+    }
+
+    .tab-btn:hover { color: #c9d1d9; }
+    .tab-btn.active { color: #e6edf3; border-bottom-color: #58a6ff; }
+
+    .tab-count {
+      font-size: 10px;
+      background: #21262d;
+      color: #8b949e;
+      border-radius: 10px;
+      padding: 0 6px;
+      line-height: 16px;
+    }
+
+    /* ── Panes ──────────────────────────────────── */
+    main { flex: 1; overflow: hidden; position: relative; }
+
+    .pane {
+      position: absolute;
+      inset: 0;
+      display: none;
+      overflow-y: auto;
+    }
+
+    .pane.active { display: block; }
+
+    #pane-graph { overflow: hidden; display: none; flex-direction: column; }
+    #pane-graph.active { display: flex; }
+
+    /* ── Skills grid ────────────────────────────── */
+    .skills-wrap {
+      padding: 24px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 14px;
+    }
+
+    .skill-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+
+    .skill-card:hover {
+      border-color: #388bfd;
+      box-shadow: 0 0 0 3px #1f6feb18;
+      transform: translateY(-1px);
+    }
+
+    .card-header {
+      padding: 14px 16px 10px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-name { font-size: 15px; font-weight: 600; color: #e6edf3; line-height: 1.3; }
+
+    .trigger-badge {
+      font-size: 10px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #58a6ff;
+      background: #1f6feb14;
+      border: 1px solid #1f6feb38;
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .card-desc {
+      padding: 0 16px 12px;
+      font-size: 12px;
+      color: #8b949e;
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .card-meta {
+      padding: 10px 16px;
+      border-top: 1px solid #21262d;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .meta-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+
+    .meta-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8b949e;
+      font-weight: 600;
+      min-width: 34px;
+    }
+
+    .meta-tag {
+      font-size: 10px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #c9d1d9;
+      background: #21262d;
+      border-radius: 3px;
+      padding: 1px 6px;
+    }
+
+    .card-rels {
+      padding: 8px 16px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .rel-chip {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid;
+    }
+
+    .card-hint {
+      padding: 6px 16px 10px;
+      font-size: 10px;
+      color: #388bfd;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .skill-card:hover .card-hint { opacity: 1; }
+
+    /* ── Skill detail modal ─────────────────────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(1, 4, 9, 0.75);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 82vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      animation: modal-in 0.15s ease;
+    }
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+
+    .modal-head {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid #21262d;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      background: #161b22;
+      z-index: 1;
+    }
+
+    .modal-title { font-size: 18px; font-weight: 700; color: #e6edf3; line-height: 1.2; }
+    .modal-trigger { margin-top: 6px; }
+
+    .modal-trigger-badge {
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #58a6ff;
+      background: #1f6feb14;
+      border: 1px solid #1f6feb38;
+      border-radius: 5px;
+      padding: 4px 12px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 2px;
+      line-height: 1;
+      border-radius: 4px;
+    }
+
+    .modal-close:hover { color: #e6edf3; background: #21262d; }
+
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-section { display: flex; flex-direction: column; gap: 8px; }
+
+    .modal-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #8b949e;
+    }
+
+    .modal-desc { font-size: 13px; color: #c9d1d9; line-height: 1.7; }
+
+    .how-to-box {
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #8b949e;
+      line-height: 1.6;
+    }
+
+    .how-to-box code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #58a6ff;
+      background: #21262d;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .io-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .io-col { display: flex; flex-direction: column; gap: 5px; }
+
+    .io-col-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8b949e;
+    }
+
+    .io-badge {
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #c9d1d9;
+      background: #21262d;
+      border-radius: 3px;
+      padding: 3px 8px;
+    }
+
+    .io-empty { font-size: 11px; color: #444d56; font-style: italic; }
+
+    .rel-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: #1c2128;
+      border-radius: 6px;
+      border-left: 3px solid transparent;
+    }
+
+    .rel-arrow { font-size: 15px; font-weight: bold; flex-shrink: 0; }
+    .rel-info { flex: 1; min-width: 0; }
+    .rel-target { font-size: 13px; font-weight: 600; color: #c9d1d9; }
+    .rel-label-text { font-size: 11px; color: #8b949e; font-style: italic; margin-top: 1px; }
+
+    .rel-type-pill {
+      font-size: 9px;
+      background: #30363d;
+      color: #8b949e;
+      padding: 2px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Graph toolbar ──────────────────────────── */
+    .graph-toolbar {
+      padding: 7px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: #21262d;
+      color: #8b949e;
+      transition: all 0.12s;
+    }
+
+    .filter-btn .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .filter-btn.active { color: #c9d1d9; border-color: currentColor; }
+    .filter-btn:hover { color: #c9d1d9; }
+
+    .icon-btn {
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid #30363d;
+      background: #21262d;
+      color: #8b949e;
+    }
+
+    .icon-btn:hover { color: #c9d1d9; border-color: #4a90d9; }
+
+    .sep { width: 1px; height: 18px; background: #30363d; margin: 0 2px; }
+
+    .graph-hint {
+      font-size: 11px;
+      color: #555d68;
+      margin-left: auto;
+    }
+
+    #cy { flex: 1; }
+
+    /* ── Graph legend ────────────────────────────── */
+    .graph-legend {
+      padding: 6px 16px;
+      background: #0d1117;
+      border-top: 1px solid #21262d;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #8b949e; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-line { width: 20px; height: 2px; flex-shrink: 0; border-radius: 1px; }
+    .legend-line.dashed { background: none; border-top: 2px dashed; }
+
+    /* ── Workflows ───────────────────────────────── */
+    .workflows-wrap {
+      padding: 28px 24px;
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .wf-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 6px;
+      margin-bottom: -16px;
+    }
+
+    .wf-block { display: flex; flex-direction: column; gap: 12px; }
+
+    .wf-chain {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      padding: 16px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+    }
+
+    .chain-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 9px 14px;
+      background: #1a2744;
+      border: 1px solid #4a90d9;
+      border-radius: 6px;
+      min-width: 110px;
+      text-align: center;
+    }
+
+    .chain-step.terminal { background: #0d2618; border-color: #4a9d6f; }
+
+    .chain-step-name { font-size: 12px; font-weight: 600; color: #c9d1d9; }
+    .chain-step-trigger { font-size: 10px; font-family: monospace; color: #58a6ff; }
+
+    .chain-edge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 0 4px;
+    }
+
+    .chain-edge-line { display: flex; align-items: center; }
+    .edge-bar { width: 28px; height: 2px; }
+    .edge-head { width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+    .chain-edge-label { font-size: 9px; color: #8b949e; font-style: italic; text-align: center; max-width: 72px; }
+
+    /* ── Tooltips ────────────────────────────────── */
+    #node-tooltip, #edge-tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-radius: 7px;
+      padding: 10px 13px;
+      font-size: 12px;
+      color: #c9d1d9;
+      display: none;
+      z-index: 999;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+
+    #node-tooltip { width: 230px; }
+
+    .nt-name  { font-size: 13px; font-weight: 600; color: #e6edf3; margin-bottom: 4px; }
+    .nt-trigs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 7px; }
+    .nt-trig  { font-size: 10px; font-family: monospace; color: #58a6ff; background: #1f6feb14; border: 1px solid #1f6feb38; border-radius: 3px; padding: 1px 5px; }
+    .nt-div   { height: 1px; background: #30363d; margin: 5px 0; }
+    .nt-desc  { font-size: 11px; color: #8b949e; line-height: 1.5; margin-bottom: 6px; }
+    .nt-io    { display: flex; flex-direction: column; gap: 3px; }
+    .nt-io-row{ display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .nt-io-lbl{ font-size: 9px; text-transform: uppercase; color: #8b949e; font-weight: 600; min-width: 32px; }
+    .nt-io-b  { font-size: 10px; font-family: monospace; color: #c9d1d9; background: #21262d; border-radius: 3px; padding: 1px 5px; }
+    .nt-hint  { font-size: 9px; color: #388bfd; margin-top: 6px; text-align: right; }
+
+    .et-route { display: flex; align-items: center; gap: 5px; font-size: 11px; margin-bottom: 3px; }
+    .et-node  { color: #79c0ff; font-weight: 600; }
+    .et-type  { font-size: 10px; color: #8b949e; }
+    .et-label { font-size: 11px; color: #e6edf3; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🗺️ Skill Dashboard</div>
+  <nav>
+    <button class="tab-btn active" data-pane="skills">
+      Skills <span class="tab-count" id="skill-count">—</span>
+    </button>
+    <button class="tab-btn" data-pane="graph">Graph</button>
+    <button class="tab-btn" data-pane="workflows">Workflows</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Skills -->
+  <div class="pane active" id="pane-skills">
+    <div class="skills-wrap">
+      <div class="grid" id="skills-grid"></div>
+    </div>
+  </div>
+
+  <!-- Graph -->
+  <div class="pane" id="pane-graph">
+    <div class="graph-toolbar">
+      <button class="filter-btn active" id="filter-explicit">
+        <span class="dot" style="background:#4a9d6f"></span> Explicit
+      </button>
+      <button class="filter-btn active" id="filter-inferred">
+        <span class="dot" style="background:#d9904a"></span> Inferred
+      </button>
+      <div class="sep"></div>
+      <button class="icon-btn" id="reset-layout">⟳ Reset</button>
+      <span class="graph-hint">Hover a node to see its edge labels · Hover an edge for details</span>
+    </div>
+    <div id="cy"></div>
+    <div class="graph-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#1f6feb;border:2px solid #4a90d9"></div> Skill</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#0d2618;border:2px solid #4a9d6f"></div> Terminal</div>
+      <div class="legend-item"><div class="legend-line" style="background:#4a9d6f"></div> leads-to</div>
+      <div class="legend-item"><div class="legend-line" style="background:#bc8cff"></div> alternative</div>
+      <div class="legend-item"><div class="legend-line" style="background:#56d364"></div> complements</div>
+      <div class="legend-item"><div class="legend-line dashed" style="border-color:#d9904a"></div> inferred</div>
+    </div>
+  </div>
+
+  <!-- Workflows -->
+  <div class="pane" id="pane-workflows">
+    <div class="workflows-wrap" id="workflows-wrap"></div>
+  </div>
+
+</main>
+
+<!-- Skill detail modal -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal">
+    <div class="modal-head" id="modal-head"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Tooltips -->
+<div id="node-tooltip">
+  <div class="nt-name" id="nt-name"></div>
+  <div class="nt-trigs" id="nt-trigs"></div>
+  <div class="nt-div"></div>
+  <div class="nt-desc" id="nt-desc"></div>
+  <div class="nt-io" id="nt-io"></div>
+  <div class="nt-hint">Click for full details →</div>
+</div>
+
+<div id="edge-tooltip">
+  <div class="et-route">
+    <span class="et-node" id="et-src"></span>
+    <span style="color:#8b949e">→</span>
+    <span class="et-node" id="et-tgt"></span>
+  </div>
+  <div class="et-type" id="et-type"></div>
+  <div class="et-label" id="et-label"></div>
+</div>
+
+<script>
+  const graphData = /* GRAPH_DATA_JSON */;
+
+  const EDGE_COLOR = {
+    'leads-to':    '#4a9d6f',
+    'alternative': '#bc8cff',
+    'complements': '#56d364',
+    'feeds-from':  '#e3b341',
+    'analyzes':    '#555d68',
+  };
+
+  const skillById = Object.fromEntries(graphData.skills.map(s => [s.id, s]));
+
+  const terminalIds = new Set(
+    graphData.skills
+      .filter(s => !graphData.edges.some(e => e.source === s.id && e.type === 'leads-to'))
+      .map(s => s.id)
+  );
+
+  // ── Tab switching ────────────────────────────────
+  let cyInitialized = false;
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('pane-' + btn.dataset.pane).classList.add('active');
+      if (btn.dataset.pane === 'graph' && !cyInitialized) {
+        initGraph();
+        cyInitialized = true;
+      }
+    });
+  });
+
+  // ── Skill detail modal ───────────────────────────
+  const backdrop = document.getElementById('modal-backdrop');
+  const modalHead = document.getElementById('modal-head');
+  const modalBody = document.getElementById('modal-body');
+
+  function openModal(skillId) {
+    const s = skillById[skillId];
+    if (!s) return;
+
+    const primary   = (s.triggers || [])[0] || '';
+    const outEdges  = graphData.edges.filter(e => e.source === skillId && !e.inferred);
+    const inEdges   = graphData.edges.filter(e => e.target === skillId && !e.inferred);
+
+    // Head
+    modalHead.innerHTML = `
+      <div>
+        <div class="modal-title">${s.label || s.id}</div>
+        ${primary ? `<div class="modal-trigger"><span class="modal-trigger-badge">${primary}</span></div>` : ''}
+      </div>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    `;
+    document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+
+    // Body
+    let html = '';
+
+    // Description
+    if (s.description) {
+      html += `
+        <div class="modal-section">
+          <div class="modal-section-label">Description</div>
+          <div class="modal-desc">${s.description}</div>
+        </div>`;
+    }
+
+    // How to use
+    if (primary) {
+      html += `
+        <div class="modal-section">
+          <div class="modal-section-label">How to use</div>
+          <div class="how-to-box">
+            Type <code>${primary}</code> in Cursor or Claude Code chat to trigger this skill.
+            ${(s.triggers || []).length > 1
+              ? `<br>Also responds to: ${s.triggers.slice(1).map(t => `<code>${t}</code>`).join(', ')}`
+              : ''}
+          </div>
+        </div>`;
+    }
+
+    // I/O
+    const hasIO = (s.inputs || []).length || (s.outputs || []).length;
+    if (hasIO) {
+      const inputsHtml  = (s.inputs  || []).length
+        ? s.inputs.map(i => `<span class="io-badge">${i}</span>`).join('')
+        : '<span class="io-empty">none</span>';
+      const outputsHtml = (s.outputs || []).length
+        ? s.outputs.map(o => `<span class="io-badge">${o}</span>`).join('')
+        : '<span class="io-empty">none</span>';
+      html += `
+        <div class="modal-section">
+          <div class="modal-section-label">I / O</div>
+          <div class="io-grid">
+            <div class="io-col">
+              <div class="io-col-label">Reads</div>
+              ${inputsHtml}
+            </div>
+            <div class="io-col">
+              <div class="io-col-label">Writes</div>
+              ${outputsHtml}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // Relationships
+    if (outEdges.length || inEdges.length) {
+      const rowsHtml = [...outEdges, ...inEdges].map(e => {
+        const isOut = e.source === skillId;
+        const other = isOut ? e.target : e.source;
+        const color = EDGE_COLOR[e.type] || '#555d68';
+        const arrowColor = isOut ? color : '#555d68';
+        return `
+          <div class="rel-row" style="border-left-color:${isOut ? color : '#30363d'}">
+            <span class="rel-arrow" style="color:${arrowColor}">${isOut ? '→' : '←'}</span>
+            <div class="rel-info">
+              <div class="rel-target">${other}</div>
+              ${e.label ? `<div class="rel-label-text">${e.label}</div>` : ''}
+            </div>
+            <span class="rel-type-pill" style="color:${color}">${e.type}</span>
+          </div>`;
+      }).join('');
+
+      html += `
+        <div class="modal-section">
+          <div class="modal-section-label">Relationships</div>
+          ${rowsHtml}
+        </div>`;
+    }
+
+    modalBody.innerHTML = html;
+    backdrop.classList.add('open');
+  }
+
+  function closeModal() {
+    backdrop.classList.remove('open');
+  }
+
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ── Build skills grid ────────────────────────────
+  document.getElementById('skill-count').textContent = graphData.skills.length;
+  const grid = document.getElementById('skills-grid');
+
+  graphData.skills.forEach(s => {
+    const triggers  = (s.triggers || []).slice(0, 1);
+    const outEdges  = graphData.edges.filter(e => e.source === s.id && !e.inferred);
+
+    const ioRows = [
+      (s.inputs  || []).length ? `<div class="meta-row"><span class="meta-label">reads</span>${s.inputs.map(i  => `<span class="meta-tag">${i}</span>`).join('')}</div>` : '',
+      (s.outputs || []).length ? `<div class="meta-row"><span class="meta-label">writes</span>${s.outputs.map(o => `<span class="meta-tag">${o}</span>`).join('')}</div>` : '',
+    ].filter(Boolean).join('');
+
+    const chips = outEdges.map(e => {
+      const color = EDGE_COLOR[e.type] || '#555';
+      return `<span class="rel-chip" style="color:${color};border-color:${color}33;background:${color}0d">→ ${e.target}</span>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = 'skill-card';
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-name">${s.label || s.id}</div>
+        ${triggers.map(t => `<span class="trigger-badge">${t}</span>`).join('')}
+      </div>
+      <div class="card-desc">${s.description || ''}</div>
+      ${ioRows ? `<div class="card-meta">${ioRows}</div>` : ''}
+      ${chips   ? `<div class="card-rels">${chips}</div>` : ''}
+      <div class="card-hint">View full details →</div>
+    `;
+
+    card.addEventListener('click', () => openModal(s.id));
+    grid.appendChild(card);
+  });
+
+  // ── Build workflows ──────────────────────────────
+  const leadsTo     = graphData.edges.filter(e => e.type === 'leads-to');
+  const alternatives = graphData.edges.filter(e => e.type === 'alternative');
+  const complements  = graphData.edges.filter(e => e.type === 'complements');
+
+  function makeStep(skill) {
+    const trigger = (skill.triggers || [])[0] || '';
+    const isTerminal = terminalIds.has(skill.id);
+    return `
+      <div class="chain-step${isTerminal ? ' terminal' : ''}">
+        <div class="chain-step-name">${skill.label || skill.id}</div>
+        ${trigger ? `<div class="chain-step-trigger">${trigger}</div>` : ''}
+      </div>`;
+  }
+
+  function makeArrow(color, label) {
+    return `
+      <div class="chain-edge">
+        <div class="chain-edge-line">
+          <div class="edge-bar" style="background:${color}"></div>
+          <div class="edge-head" style="border-left:7px solid ${color}"></div>
+        </div>
+        ${label ? `<div class="chain-edge-label">${label}</div>` : ''}
+      </div>`;
+  }
+
+  const wrap = document.getElementById('workflows-wrap');
+
+  if (leadsTo.length) {
+    const hasIncoming = new Set(leadsTo.map(e => e.target));
+    const entries = graphData.skills.filter(s =>
+      !hasIncoming.has(s.id) && leadsTo.some(e => e.source === s.id)
+    );
+
+    const section = document.createElement('div');
+    section.className = 'wf-block';
+    section.innerHTML = `<div class="wf-section-label">Workflows</div>`;
+
+    entries.forEach(entry => {
+      const chain = [{ skill: entry }];
+      let cur = entry.id;
+      for (let i = 0; i < 10; i++) {
+        const next = leadsTo.find(e => e.source === cur);
+        if (!next) break;
+        const sk = skillById[next.target];
+        if (!sk) break;
+        chain.push({ skill: sk, edge: next });
+        cur = next.target;
+      }
+      if (chain.length < 2) return;
+
+      const steps = chain.map((item, i) => {
+        if (i === 0) return makeStep(item.skill);
+        return makeArrow('#4a9d6f', item.edge.label || '') + makeStep(item.skill);
+      }).join('');
+
+      const block = document.createElement('div');
+      block.innerHTML = `<div class="wf-chain">${steps}</div>`;
+      section.appendChild(block);
+    });
+
+    wrap.appendChild(section);
+  }
+
+  const seenAlt = new Set();
+  const altPairs = alternatives.filter(e => {
+    const key = [e.source, e.target].sort().join('|');
+    if (seenAlt.has(key)) return false;
+    seenAlt.add(key);
+    return true;
+  });
+
+  if (altPairs.length) {
+    const section = document.createElement('div');
+    section.className = 'wf-block';
+    section.innerHTML = `<div class="wf-section-label">Alternatives — different approach to the same job</div>`;
+    altPairs.forEach(e => {
+      const a = skillById[e.source], b = skillById[e.target];
+      if (!a || !b) return;
+      const block = document.createElement('div');
+      block.innerHTML = `<div class="wf-chain">${makeStep(a)}${makeArrow('#bc8cff', e.label || 'alternative')}${makeStep(b)}</div>`;
+      section.appendChild(block);
+    });
+    wrap.appendChild(section);
+  }
+
+  if (complements.length) {
+    const section = document.createElement('div');
+    section.className = 'wf-block';
+    section.innerHTML = `<div class="wf-section-label">Complements — different purpose, works well together</div>`;
+    complements.forEach(e => {
+      const a = skillById[e.source], b = skillById[e.target];
+      if (!a || !b) return;
+      const block = document.createElement('div');
+      block.innerHTML = `<div class="wf-chain">${makeStep(a)}${makeArrow('#56d364', e.label || 'complements')}${makeStep(b)}</div>`;
+      section.appendChild(block);
+    });
+    wrap.appendChild(section);
+  }
+
+  // ── Graph (lazy) ─────────────────────────────────
+  function initGraph() {
+    const elements = [];
+
+    graphData.skills.forEach(s => {
+      elements.push({ group: 'nodes', data: {
+        id: s.id, label: s.label || s.id,
+        description: s.description || '',
+        triggers: s.triggers || [],
+        inputs:   s.inputs   || [],
+        outputs:  s.outputs  || [],
+      }});
+    });
+
+    graphData.edges.forEach((e, i) => {
+      const color = e.inferred ? '#d9904a' : (EDGE_COLOR[e.type] || '#4a9d6f');
+      elements.push({ group: 'edges', data: {
+        id: `e${i}`, source: e.source, target: e.target,
+        label: e.label || '', type: e.type || 'leads-to',
+        inferred: !!e.inferred, color,
+      }});
+    });
+
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': '#1a2744',
+            'border-color': '#4a90d9',
+            'border-width': 2,
+            'color': '#c9d1d9',
+            'label': 'data(label)',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'font-size': '12px',
+            'font-weight': '500',
+            'width': 160, 'height': 50,
+            'shape': 'roundrectangle',
+            'text-wrap': 'wrap',
+            'text-max-width': 140,
+            'font-family': '-apple-system, sans-serif',
+          }
+        },
+        { selector: 'node:selected',
+          style: { 'background-color': '#1f3a6e', 'border-color': '#79c0ff', 'border-width': 3 } },
+        { selector: 'node.dim', style: { opacity: 0.2 } },
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': 'data(color)',
+            'target-arrow-color': 'data(color)',
+            'target-arrow-shape': 'triangle',
+            'arrow-scale': 1.1,
+            'curve-style': 'bezier',
+            // Labels hidden by default — appear on node hover
+            'label': '',
+            'font-size': '10px',
+            'color': 'data(color)',
+            'text-background-color': '#0d1117',
+            'text-background-opacity': 0.9,
+            'text-background-padding': '3px',
+            'text-rotation': 0,
+            'opacity': 0.85,
+          }
+        },
+        { selector: 'edge[?inferred]',
+          style: { 'line-style': 'dashed', 'line-dash-pattern': [6, 4], opacity: 0.5 } },
+        { selector: 'edge.dim', style: { opacity: 0.07 } },
+        { selector: 'edge.hi',  style: { width: 3, opacity: 1 } },
+        // Highlighted connected edges show their type label
+        { selector: 'edge.show-label',
+          style: { 'label': 'data(type)' } },
+      ],
+      layout: {
+        name: 'cose', animate: true, animationDuration: 400,
+        padding: 60, nodeRepulsion: () => 900000,
+        idealEdgeLength: () => 220, edgeElasticity: () => 100,
+        gravity: 60, numIter: 1000, randomize: false,
+        avoidOverlap: true, nodeDimensionsIncludeLabels: true, fit: true,
+      }
+    });
+
+    cy.nodes().forEach(n => {
+      if (terminalIds.has(n.id())) {
+        n.style({ 'background-color': '#0d2618', 'border-color': '#4a9d6f', 'border-width': 3 });
+      }
+    });
+
+    // Node tooltip
+    const nodeTip = document.getElementById('node-tooltip');
+    let tipTimer = null, hoveredNode = null;
+
+    cy.on('mouseover', 'node', e => {
+      const node = e.target;
+      hoveredNode = node;
+
+      // Dim unconnected, show edge type labels on connected edges
+      const nb = new Set([node.id()]);
+      node.connectedEdges().forEach(ed => {
+        nb.add(ed.data('source'));
+        nb.add(ed.data('target'));
+        ed.addClass('show-label');
+      });
+      cy.nodes().forEach(n => { if (!nb.has(n.id())) n.addClass('dim'); });
+      cy.edges().forEach(ed => { if (!nb.has(ed.data('source')) || !nb.has(ed.data('target'))) ed.addClass('dim'); });
+
+      clearTimeout(tipTimer);
+      const orig = e.originalEvent;
+      tipTimer = setTimeout(() => {
+        if (hoveredNode !== node || !orig) return;
+        const d = node.data();
+        document.getElementById('nt-name').textContent = d.label;
+        document.getElementById('nt-trigs').innerHTML =
+          d.triggers.map(t => `<span class="nt-trig">${t}</span>`).join('');
+        document.getElementById('nt-desc').textContent = d.description;
+
+        const io = document.getElementById('nt-io');
+        io.innerHTML = '';
+        if (d.inputs.length)  io.innerHTML += `<div class="nt-io-row"><span class="nt-io-lbl">reads</span>${d.inputs.map(i  => `<span class="nt-io-b">${i}</span>`).join('')}</div>`;
+        if (d.outputs.length) io.innerHTML += `<div class="nt-io-row"><span class="nt-io-lbl">writes</span>${d.outputs.map(o => `<span class="nt-io-b">${o}</span>`).join('')}</div>`;
+
+        const tw = 250;
+        const left = orig.clientX + 16 + tw > window.innerWidth ? orig.clientX - tw : orig.clientX + 16;
+        nodeTip.style.left = left + 'px';
+        nodeTip.style.top  = (orig.clientY - 10) + 'px';
+        nodeTip.style.display = 'block';
+      }, 200);
+    });
+
+    cy.on('mousemove', 'node', e => {
+      if (nodeTip.style.display !== 'block') return;
+      const orig = e.originalEvent;
+      if (!orig) return;
+      const tw = 250;
+      const left = orig.clientX + 16 + tw > window.innerWidth ? orig.clientX - tw : orig.clientX + 16;
+      nodeTip.style.left = left + 'px';
+      nodeTip.style.top  = (orig.clientY - 10) + 'px';
+    });
+
+    cy.on('mouseout', 'node', () => {
+      clearTimeout(tipTimer);
+      hoveredNode = null;
+      nodeTip.style.display = 'none';
+      cy.elements().removeClass('dim show-label');
+    });
+
+    cy.on('grab', 'node', () => { clearTimeout(tipTimer); nodeTip.style.display = 'none'; });
+
+    // Edge tooltip
+    const edgeTip = document.getElementById('edge-tooltip');
+
+    cy.on('mouseover', 'edge', e => {
+      const d = e.target.data();
+      document.getElementById('et-src').textContent   = d.source;
+      document.getElementById('et-tgt').textContent   = d.target;
+      document.getElementById('et-type').textContent  = d.type + (d.inferred ? ' · inferred' : '');
+      document.getElementById('et-label').textContent = d.label;
+      edgeTip.style.display = 'block';
+      e.target.addClass('hi');
+    });
+
+    cy.on('mousemove', 'edge', e => {
+      const orig = e.originalEvent;
+      if (orig) { edgeTip.style.left = (orig.clientX + 14) + 'px'; edgeTip.style.top = (orig.clientY - 10) + 'px'; }
+    });
+
+    cy.on('mouseout', 'edge', e => { edgeTip.style.display = 'none'; e.target.removeClass('hi'); });
+
+    cy.on('tap', e => { if (e.target === cy) cy.elements().unselect(); });
+
+    // Filters
+    let showExplicit = true, showInferred = true;
+
+    function applyFilters() {
+      cy.edges().forEach(ed => {
+        ed.style('display', ed.data('inferred') ? (showInferred ? 'element' : 'none') : (showExplicit ? 'element' : 'none'));
+      });
+    }
+
+    document.getElementById('filter-explicit').addEventListener('click', function() {
+      showExplicit = !showExplicit;
+      this.classList.toggle('active', showExplicit);
+      applyFilters();
+    });
+
+    document.getElementById('filter-inferred').addEventListener('click', function() {
+      showInferred = !showInferred;
+      this.classList.toggle('active', showInferred);
+      applyFilters();
+    });
+
+    document.getElementById('reset-layout').addEventListener('click', () => {
+      cy.layout({ name: 'cose', animate: true, animationDuration: 400, padding: 60,
+        nodeRepulsion: () => 900000, idealEdgeLength: () => 220, edgeElasticity: () => 100,
+        gravity: 60, numIter: 1000, randomize: true, fit: true }).run();
+    });
+  }
+</script>
+</body>
+</html>
