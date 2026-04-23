@@ -1,5 +1,4 @@
 ---
-description: Generate a PRD by asking 3-5 critical clarifying questions first, then produce and save a structured Markdown PRD for junior developers.
 alwaysApply: false
 ---
 # Generating a Product Requirements Document (PRD)
