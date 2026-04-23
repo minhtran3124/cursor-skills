@@ -48,7 +48,7 @@ Wait for the user to confirm before starting.
 
 ## Step 2b: Initialize progress.md
 
-Once the chunk breakdown is confirmed, create a `progress.md` file in the project root (or alongside the plan file if one was provided). This file is the implementation log — it will be updated after every chunk.
+Once the chunk breakdown is confirmed, create a `progress.md` file inside the feature folder at `specs/<feature>/progress.md` (derive the slug from the plan or feature name). If an existing plan file was provided outside of `specs/`, write `progress.md` alongside it instead. This file is the implementation log — it will be updated after every chunk.
 
 Seed it with the plan overview and chunk list:
 

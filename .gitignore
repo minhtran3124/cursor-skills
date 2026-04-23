@@ -19,8 +19,14 @@ __pycache__/
 *.swp
 *~
 
+# Generated outputs (skills/rules produce these per-project)
 docs/
+specs/
+
+# Legacy output paths (pre-restructure)
 .docs/
 .review/
+tasks/
+
 .pytest_cache/
 .claude/

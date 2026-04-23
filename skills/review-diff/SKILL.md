@@ -13,7 +13,7 @@ relationships:
 
 # PR Review Markdown Generator
 
-Generate a Markdown review file for the current uncommitted git changes (or a specified PR). Save it to `.review/review.md`.
+Generate a Markdown review file for the current uncommitted git changes (or a specified PR). Save it to `specs/<feature>/review.md`, where `<feature>` is derived from the current git branch name (strip common prefixes like `feature/`, `feat/`, `fix/`). If no feature slug can be derived (e.g. on `main`), fall back to `specs/review/review.md`.
 
 ## What to produce
 
@@ -60,9 +60,10 @@ Always include this Mermaid init for dark theme rendering:
 
 1. Run `git diff HEAD` and `git diff --stat HEAD` to understand the changes
 2. Read the changed files and their surrounding architecture (imports, callers, class hierarchy)
-3. Create `.review/` directory if it doesn't exist
-4. Generate `.review/review.md` with all three sections
-5. Verify the Mermaid code blocks are well-formed and node labels are under 25 characters
+3. Derive `<feature>` from the current branch (`git rev-parse --abbrev-ref HEAD`, strip `feature/`, `feat/`, `fix/`, `chore/`, etc.)
+4. Create `specs/<feature>/` directory if it doesn't exist
+5. Generate `specs/<feature>/review.md` with all three sections
+6. Verify the Mermaid code blocks are well-formed and node labels are under 25 characters
 
 ## Arguments
 

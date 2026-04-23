@@ -1,6 +1,6 @@
 ---
 name: create-wiki
-description: Deep-investigate a codebase and generate a single-page project wiki at .docs/index.html. Use this skill whenever the user asks to "create a wiki", "generate docs", "document this project", "explain this codebase", "make a project wiki", or wants a comprehensive HTML overview of a repository. Also trigger when the user says /create-wiki. Even if the user just says "wiki" in the context of documentation, use this skill.
+description: Deep-investigate a codebase and generate a single-page project wiki at docs/wiki.html. Use this skill whenever the user asks to "create a wiki", "generate docs", "document this project", "explain this codebase", "make a project wiki", or wants a comprehensive HTML overview of a repository. Also trigger when the user says /create-wiki. Even if the user just says "wiki" in the context of documentation, use this skill.
 relationships:
   - target: compound
     type: leads-to
@@ -9,7 +9,7 @@ relationships:
 
 # Create Wiki
 
-Generate a comprehensive single-page wiki for any codebase, saved to `.docs/index.html`. The wiki explains the project's architecture, implementation, and key systems in **explanatory narrative prose** — not terse reference tables or bullet-point dumps.
+Generate a comprehensive single-page wiki for any codebase, saved to `docs/wiki.html`. The wiki explains the project's architecture, implementation, and key systems in **explanatory narrative prose** — not terse reference tables or bullet-point dumps.
 
 ## Process
 
@@ -93,7 +93,7 @@ Read the template from `references/template.html` in this skill's directory. It 
 2. Replace `{{PROJECT_NAME}}` with the project name
 3. Build the sidebar `<nav>` with `<a href="#section-id">` links for each section
 4. Fill the `<main>` element with your content sections
-5. Write the complete file to `.docs/index.html` (create `.docs/` if needed)
+5. Write the complete file to `docs/wiki.html` (create `docs/` if needed)
 
 ### Content Writing Guidelines
 

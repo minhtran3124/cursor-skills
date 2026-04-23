@@ -4,7 +4,7 @@ description: >
   Skill graph visualizer — scans all SKILL.md files in skills/, builds a directed
   relationship graph from explicit `relationships` frontmatter (falling back to
   content inference), and generates both a Mermaid markdown summary and an
-  interactive HTML graph at .docs/skill-graph.html.
+  interactive HTML graph at docs/skill-graph.html.
   Trigger: /visual
 ---
 
@@ -47,7 +47,7 @@ For each skill file, extract:
 | `description` | `description` frontmatter — first sentence only |
 | `triggers` | Content: `/command` patterns found in the text |
 | `inputs` | Content: files/sources the skill reads (e.g. `git diff`, `docs/plans/`) |
-| `outputs` | Content: files the skill writes (e.g. `.review/review.md`) |
+| `outputs` | Content: files the skill writes (e.g. `specs/<feature>/review.md`) |
 | `relationships` | `relationships` frontmatter array — see schema below |
 
 **Relationships frontmatter schema** (explicit, preferred):
@@ -176,7 +176,7 @@ flowchart LR
     classDef ext fill:#2a1a0a,stroke:#d9904a,color:#ffd0a0
 
     git_diff[/"git diff"/]:::ext
-    review_md[/".review/review.md"/]:::artifact
+    review_md[/"specs/<feature>/review.md"/]:::artifact
 
     git_diff --> review_diff
     review_diff --> review_md
@@ -198,7 +198,7 @@ Use this JSON string for both outputs below (same data, different templates).
 
 Open `skills/visual/references/dashboard-template.html`.
 Replace `/* GRAPH_DATA_JSON */` with the JSON string.
-Write to `.docs/skill-dashboard.html`.
+Write to `docs/skill-dashboard.html`.
 
 The dashboard has three tabs:
 - **Skills** — card grid with every skill's trigger, description, reads/writes, outgoing relationships
@@ -209,7 +209,7 @@ The dashboard has three tabs:
 
 Open `skills/visual/references/graph-template.html`.
 Replace `/* GRAPH_DATA_JSON */` with the same JSON string.
-Write to `.docs/skill-graph.html`.
+Write to `docs/skill-graph.html`.
 
 If either template file is not found, skip that output and note it in the report.
 
@@ -225,8 +225,9 @@ Search CLAUDE.md for `SKILL_GRAPH`. If not found, propose:
 > ```markdown
 > ## Skill Graph
 > Skill relationships and workflows: `docs/SKILL_GRAPH.md`
-> Dashboard (skills + graph + workflows): `.docs/skill-dashboard.html`
-> Standalone graph: `.docs/skill-graph.html`
+> Dashboard (skills + graph + workflows): `docs/skill-dashboard.html`
+> Standalone graph: `docs/skill-graph.html`
+> Wiki: `docs/wiki.html`
 > ```
 >
 > Add to CLAUDE.md? (yes/no)
@@ -242,8 +243,8 @@ Search CLAUDE.md for `SKILL_GRAPH`. If not found, propose:
   Skills:        N
   Relationships: M explicit, K inferred
   → docs/SKILL_GRAPH.md              [Mermaid overview + workflows + data flow + index]
-  → .docs/skill-dashboard.html       [dashboard: skills cards + graph + workflows]
-  → .docs/skill-graph.html           [standalone interactive graph]
+  → docs/skill-dashboard.html       [dashboard: skills cards + graph + workflows]
+  → docs/skill-graph.html           [standalone interactive graph]
   CLAUDE.md: surfaced ✓ / not yet referenced
 ```
 
@@ -254,6 +255,6 @@ Search CLAUDE.md for `SKILL_GRAPH`. If not found, propose:
 - **Never auto-write** to CLAUDE.md — always ask first
 - **Explicit over inferred** — `relationships` frontmatter always wins; inferred edges are dashed in both outputs
 - **Idempotent** — re-running `/visual` fully overwrites both output files
-- **Non-destructive** — never modifies any SKILL.md file; only writes to `docs/` and `.docs/`
+- **Non-destructive** — never modifies any SKILL.md file; only writes to `docs/`
 - **Mermaid node IDs**: replace `-` with `_` to avoid parse errors (e.g. `review_diff` not `review-diff`)
 - **Node label length**: keep `\n`-split lines under 20 characters each for readability

@@ -1,9 +1,14 @@
 ---
 name: exploring
 description: >-
-  Use when requirements are fuzzy or before brainstorming begins. Extracts locked
-  decisions through Socratic dialogue and writes specs/YYYY-MM-DD/<feature>/context.md
-  as single source of truth. Invoke before brainstorming when intent is unclear.
+  Use when requirements are fuzzy or before design/PRD work begins. Extracts locked
+  decisions through Socratic dialogue and writes specs/<feature>/context.md as
+  single source of truth. Invoke before create-prd (Cursor) or brainstorming when
+  intent is unclear.
+relationships:
+  - target: create-prd
+    type: leads-to
+    label: "feeds PRD generation"
 ---
 
 # Exploring
@@ -163,7 +168,7 @@ When the user suggests something outside scope:
 
 ### Step 4.1 — Write context.md
 
-**Path:** `specs/YYYY-MM-DD/<feature-slug>/context.md`
+**Path:** `specs/<feature>/context.md` (kebab-case slug, e.g. `specs/notifications/context.md`)
 
 Use this template exactly — remove unused sections rather than leaving them blank:
 
@@ -250,9 +255,10 @@ Do NOT implement, design, scaffold, or invoke any skill.
 
 After context.md passes review:
 
-> "Decisions captured. Context written to `specs/YYYY-MM-DD/<feature>/context.md`.
-> Invoke the `brainstorming` skill — it will read this file as the starting point
-> for design."
+> "Decisions captured. Context written to `specs/<feature>/context.md`.
+> Next step: invoke the `create-prd` rule (Cursor) or the `brainstorming` skill —
+> either will read this file as the starting point and skip questions already
+> answered by locked decisions."
 
 ---
 
