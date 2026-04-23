@@ -18,3 +18,9 @@ __pycache__/
 .idea/
 *.swp
 *~
+
+docs/
+.docs/
+.review/
+.pytest_cache/
+.claude/
