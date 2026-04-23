@@ -1,0 +1,79 @@
+---
+description: Save a resumable checkpoint when stopping work mid-feature. Updates specs/<feature>/progress.md Position block with the next action and optional mental state. Offers to commit WIP. Use when the user says "pause", "stop here", "I need to stop", "save my place", or invokes @pause.
+alwaysApply: false
+---
+# Rule: Pause Work — Cognitive Checkpoint
+
+## Goal
+
+When the user stops work mid-feature, capture just enough state to resume without loss. The **Position block** in `specs/[feature]/progress.md` is always the source of truth — this rule updates it with the *cognitive* state that auto-save can't catch: what the user was about to do and anything they were mid-deciding.
+
+## Process
+
+### 1. Detect the feature
+
+- Derive `[feature]` from the current git branch: `git rev-parse --abbrev-ref HEAD`, strip common prefixes (`feature/`, `feat/`, `fix/`, `chore/`).
+- If no match or branch is `main`/`master`: scan `specs/*/progress.md` where `Status:` is not `complete`.
+  - 0 candidates → respond "No active feature to pause. Start one with `@create-prd`." and exit.
+  - 1 candidate → use it.
+  - N candidates → list them with their current Position and ask the user to pick.
+
+### 2. Determine the current task
+
+Read `specs/[feature]/tasks.md` and find the **highest unchecked task** (first `- [ ]` in document order). Use its number and label as `Current task`. If `tasks.md` does not exist, set `Current task: (no task list yet)`.
+
+### 3. Ask the cognitive questions
+
+Ask exactly two questions, in order. Do not bundle them.
+
+**Q1 (required):**
+
+> "What's the next action when you resume? (one sentence)"
+
+**Q2 (optional, explicit skip):**
+
+> "Anything you were mid-deciding or wanted to remember? (press enter to skip)"
+
+If Q2 response is empty, whitespace, `skip`, `no`, or `n` — **omit the Mental state line entirely**. Do not write `Mental state: none`.
+
+### 4. Write the Position block
+
+Update (or create) `specs/[feature]/progress.md`. The Position block lives at the top, under the feature heading:
+
+```markdown
+# Progress — [feature]
+
+## Position
+- **Status:** in_progress
+- **Current task:** [task number] — [task label]
+- **Last action:** [from last log entry in progress.md, or derive from `git log -1 --oneline`]
+- **Next action:** [user Q1 answer]
+- **Mental state:** [user Q2 answer — omit this whole line if skipped]
+- **Last updated:** [YYYY-MM-DD HH:MM, local time]
+
+## Chunks / Log
+[preserve any existing log entries below — do not delete]
+```
+
+If `progress.md` already exists with Chunks or Log entries, preserve them. Only replace the Position block itself.
+
+### 5. Offer a WIP commit
+
+Ask one question:
+
+> "Save as a WIP commit? (y/n, default y)"
+
+If yes: run `git add -A && git commit -m "WIP: pause at [task] — [next action truncated to 50 chars]"`. If no: skip. Never force.
+
+### 6. Confirm
+
+Respond with:
+
+> "Checkpoint saved to `specs/[feature]/progress.md`. Resume anytime with `@resume`."
+
+## Constraints
+
+- Keep the Position block under 10 lines. It is a digest, not an archive.
+- Never rewrite the Chunks / Log section — append-only from `incremental-implementation`.
+- If Q1 is empty, re-ask once. If still empty, write `Next action: (unspecified — check tasks.md)`.
+- Never auto-commit without asking.

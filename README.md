@@ -31,7 +31,9 @@ Every feature gets its own folder under `specs/`. Each rule reads the prior file
 |------|---------|--------|
 | `behavior.mdc` | Always-on coding guidelines (simplicity, surgical changes, goal-driven execution) | — |
 | `create-prd.mdc` | Generate a PRD from a feature idea via 3-5 clarifying questions | `specs/<feature>/prd.md` |
-| `generate-tasks.mdc` | Break a PRD into a two-phase task list (parent → confirm → sub-tasks) | `specs/<feature>/tasks.md` |
+| `generate-tasks.mdc` | Break a PRD into a two-phase task list; seeds a progress checkpoint | `specs/<feature>/tasks.md`, `specs/<feature>/progress.md` |
+| `pause.mdc` | Save a resumable checkpoint when stopping mid-feature | updates `specs/<feature>/progress.md` |
+| `resume.mdc` | Read the checkpoint and continue where you left off | — (read-only) |
 
 ## Your first feature
 
@@ -44,6 +46,10 @@ Every feature gets its own folder under `specs/`. Each rule reads the prior file
 > **Tip:** you can also just describe what you want in plain language (`"generate a PRD for a notification system"`). Cursor matches your intent to the rule's `description` automatically — `@`-mention is the reliable fallback when auto-routing misses.
 
 Feature slug is kebab-case of the feature name. Cursor creates the `specs/<feature>/` folder for you.
+
+## Pause and resume
+
+Closing Cursor mid-task? Ask **`@pause`** — Cursor asks what you were about to do, updates `specs/<feature>/progress.md`, and offers to commit WIP. When you come back, **`@resume`** (or just "where was I") reads the checkpoint and points you at the next action. Position is also auto-updated as you complete chunks during implementation, so even an unexpected crash leaves a usable checkpoint.
 
 ## Optional: Claude Code skills
 

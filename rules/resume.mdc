@@ -1,0 +1,64 @@
+---
+description: Resume feature work by reading specs/<feature>/progress.md. Use when the user wants to continue prior work or asks where they left off — including phrases like "resume", "continue", "where was I", "what was I doing", "what's next", "pick up where I left off", or @resume.
+alwaysApply: false
+---
+# Rule: Resume Work — Read the Checkpoint
+
+## Goal
+
+Restore context after a break (crash, close, new day) by reading the Position block in `specs/[feature]/progress.md`. The filesystem is the source of truth — never ask the user to remember what they were doing.
+
+## Process
+
+### 1. Detect the active feature
+
+Try in order:
+
+1. **Branch-based:** run `git rev-parse --abbrev-ref HEAD`, strip prefixes (`feature/`, `feat/`, `fix/`, `chore/`). If `specs/[slug]/progress.md` exists, use it.
+2. **Filesystem scan:** find all `specs/*/progress.md` where the Position block's `Status:` is not `complete`.
+   - **0 matches** → respond:
+     > "No feature in progress. Start a new one with `@create-prd`."
+   - **1 match** → use it silently.
+   - **N matches** → list each with its Current task and Last updated line; ask the user to pick.
+
+### 2. Read and print the Position block
+
+Read `specs/[feature]/progress.md` and print the Position block verbatim to the user:
+
+```
+Feature: [feature]
+Status: [status]
+Current task: [task number] — [label]
+Last action: [last action line]
+Next action: [next action line]
+Mental state: [mental state line — omit if not present]
+Last updated: [timestamp]
+```
+
+### 3. Offer next step
+
+Ask the user:
+
+> "Ready to proceed with the next action? (y = start / show tasks / new = fresh feature)"
+
+- **y / yes / proceed** → open the file referenced in `Next action` if one is named, or begin that action directly.
+- **show tasks** → print the current unchecked tasks from `specs/[feature]/tasks.md`.
+- **new** → exit and suggest `@create-prd`.
+
+### 4. Staleness check
+
+If `Last updated` is more than 7 days old, prepend a warning before the Position block:
+
+> "⚠ Last updated [N] days ago. Consider verifying the state still matches the code before continuing."
+
+## Fallback: no progress.md but tasks.md exists
+
+If `specs/[feature]/tasks.md` exists but `progress.md` does not, treat it as a feature that was never started or where Position was never written. Respond:
+
+> "Feature `[feature]` has a task list but no progress checkpoint. First unchecked task: [X.X] — [label]. Start there, or run `@pause` after your first chunk to establish a checkpoint."
+
+## Constraints
+
+- Never invent a Position block from thin air. If `progress.md` lacks a Position section, say so — don't fabricate.
+- Never modify files. This rule is read-only.
+- Do not prompt for new information — everything comes from disk.

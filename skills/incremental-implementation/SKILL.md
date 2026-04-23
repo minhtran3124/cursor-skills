@@ -46,25 +46,36 @@ Use the `AskUserQuestion` tool to ask: "Does this breakdown look right? Anything
 
 Wait for the user to confirm before starting.
 
-## Step 2b: Initialize progress.md
+## Step 2b: Initialize or update progress.md
 
-Once the chunk breakdown is confirmed, create a `progress.md` file inside the feature folder at `specs/<feature>/progress.md` (derive the slug from the plan or feature name). If an existing plan file was provided outside of `specs/`, write `progress.md` alongside it instead. This file is the implementation log — it will be updated after every chunk.
+Create or update `specs/<feature>/progress.md` (derive the slug from the plan or feature name). If `generate-tasks` already seeded this file, preserve its existing structure and only update the sections below. If an existing plan file was provided outside of `specs/`, write `progress.md` alongside it instead.
 
-Seed it with the plan overview and chunk list:
+This file serves two roles: a **Position block** at the top (live checkpoint, read by `@resume`) and a **Chunks / Log** section below (append-only implementation log).
+
+Seed / update it like this:
 
 ```markdown
-# Implementation Progress
+# Progress — <feature>
+
+## Position
+- **Status:** in_progress
+- **Current task:** [1] <first chunk name>
+- **Last action:** Breakdown confirmed; about to start chunk 1
+- **Next action:** Begin chunk 1 — <brief>
+- **Last updated:** <YYYY-MM-DD HH:MM>
 
 ## Plan Overview
 [1–3 sentence summary of what's being built]
 
-## Chunks
+## Chunks / Log
 - [ ] [1] Chunk name — brief description
 - [ ] [2] Chunk name — brief description
 ...
 
 ---
 ```
+
+**Position discipline:** the Position block must be kept current — update it at the start and end of every chunk (see Step 3d). This is what lets `@resume` work after crashes or session gaps.
 
 ## Step 3: Work Through Each Chunk
 
@@ -82,9 +93,18 @@ Use the `AskUserQuestion` tool to ask if the user has any questions or wants to 
 
 Write the code. Stay focused on what the chunk describes. Resist the urge to clean up adjacent code, add extra features, or sneak in improvements that weren't part of the plan — those belong in their own chunks.
 
-### 3d. Visualize and Log
+### 3d. Visualize, Log, and Update Position
 
-After implementation, show the user what was built **and append the chunk's entry to `progress.md`**.
+After implementation, show the user what was built, **update the Position block**, and **append the chunk's entry to `progress.md`**.
+
+**Position update rules (before appending the new chunk entry):**
+- Check off the completed chunk in the Chunks / Log list (`- [ ]` → `- [x]`)
+- In the Position block: set `Current task` to the *next* unchecked chunk (or `complete` if this was the last)
+- Set `Last action` to "Finished chunk [N]: [name]"
+- Set `Next action` to a one-sentence pointer to the next chunk's first concrete step (file to open, command to run)
+- Bump `Last updated` to now
+
+This keeps Position within one chunk of reality at all times — if Cursor crashes or the user closes mid-chunk, `@resume` still surfaces a useful checkpoint.
 
 **Choose a Mermaid diagram type** that best communicates the change:
 
@@ -215,7 +235,7 @@ Same for plan errors: if something in the plan doesn't make sense or conflicts w
 
 After all chunks are verified:
 
-1. **Finalize `progress.md`** — append a closing section:
+1. **Finalize `progress.md`** — set the Position block's `Status:` to `complete` (so `@resume` no longer surfaces this feature as in-progress) and append a closing section:
 
 ```markdown
 ---
