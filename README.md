@@ -36,10 +36,12 @@ Every feature gets its own folder under `specs/`. Each rule reads the prior file
 ## Your first feature
 
 1. Open Cursor in your project.
-2. Ask: **"use create-prd rule to generate a PRD for a notification system"**
-3. Answer the 3-5 clarifying questions Cursor asks.
-4. Ask: **"use generate-tasks rule"** — review the parent tasks, respond with **"Go"** to expand sub-tasks.
-5. Work through the task list. Check off each box (`- [ ]` → `- [x]`) as you finish.
+2. Ask: **`@create-prd generate a PRD for a notification system`**
+3. Answer the 3-5 clarifying questions.
+4. Ask: **`@generate-tasks`** — review the parent tasks, respond with **`Go`** to expand sub-tasks.
+5. Work through the task list, checking off each box (`- [ ]` → `- [x]`) as you finish.
+
+> **Tip:** you can also just describe what you want in plain language (`"generate a PRD for a notification system"`). Cursor matches your intent to the rule's `description` automatically — `@`-mention is the reliable fallback when auto-routing misses.
 
 Feature slug is kebab-case of the feature name. Cursor creates the `specs/<feature>/` folder for you.
 
