@@ -67,4 +67,6 @@ eval/     Evaluation harness for skills
 
 ---
 
-Have an idea for a new rule or skill? Contributions welcome.
+**Author:** Minh Tran — [@minhtran3124](https://github.com/minhtran3124)
+
+Have an idea for a new rule or skill? See [CONTRIBUTE.md](CONTRIBUTE.md).
