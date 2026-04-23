@@ -20,7 +20,6 @@ __pycache__/
 *~
 
 # Generated outputs (skills/rules produce these per-project)
-docs/
 specs/
 
 # Legacy output paths (pre-restructure)

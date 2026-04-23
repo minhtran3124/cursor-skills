@@ -25,6 +25,16 @@ specs/<feature>/   specs/<feature>/      specs/<feature>/
 
 Every feature gets its own folder under `specs/`. Each rule reads the prior file in that folder, so artifacts chain automatically.
 
+> **See it in action:** open [`docs/workflow_anim.html`](docs/workflow_anim.html) in your browser for an animated walkthrough of the create → tasks → pause → resume cycle. From the repo root:
+>
+> ```bash
+> open docs/workflow_anim.html        # macOS
+> xdg-open docs/workflow_anim.html    # Linux
+> start docs/workflow_anim.html       # Windows
+> ```
+>
+> Click **Play** in the bottom-right to start the tour.
+
 ## Rules
 
 | Rule | Purpose | Writes |
@@ -54,6 +64,8 @@ Closing Cursor mid-task? Ask **`@pause`** — Cursor asks what you were about to
 ## Optional: Claude Code skills
 
 For users who also work in Claude Code (or Codex, Jules, other agents), the `skills/` folder contains conversational entry points — most notably `/exploring`, a Socratic requirements-capture that writes `specs/<feature>/context.md`. When present, `create-prd` reads it and skips questions already answered.
+
+New to the project? Run `/introduce` — it generates `docs/INTRODUCE.md`, a 60-second workflow tour with an embedded GIF, designed to get a new teammate productive before their first task.
 
 See [CLAUDE.md](CLAUDE.md) for the full skill list and relationship graph.
 

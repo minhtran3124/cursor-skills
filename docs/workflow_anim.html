@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Skills Workflow</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --card-bg: #1a1d23;
+            --accent: #4f46e5;
+            --accent-glow: rgba(79, 70, 229, 0.4);
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --border: #2d3139;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .scene-container {
+            position: relative;
+            width: 900px;
+            height: 550px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 12px;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .btn.secondary { background: var(--card-bg); border: 1px solid var(--border); }
+
+        .preview-panel {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 500px;
+            background: #0d1117;
+            color: #e6edf3;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 2000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            max-height: 350px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .preview-panel.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .preview-filename { color: var(--success); font-weight: 400; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+        .md-h1 { font-size: 1.8em; font-weight: 700; display: block; margin-top: 0; margin-bottom: 24px; color: #ffffff; }
+        .md-h2 { font-size: 1.3em; font-weight: 600; display: block; margin-top: 24px; margin-bottom: 12px; color: #ffffff; }
+        .md-list { margin-top: 0; margin-bottom: 16px; padding-left: 0; list-style-type: none; }
+        .md-item { display: flex; align-items: start; gap: 8px; margin-bottom: 4px; }
+        .md-bullet { color: #8b949e; }
+        .md-code { background: rgba(110,118,129,0.4); padding: 2px 5px; border-radius: 6px; font-family: monospace; font-size: 0.9em; }
+        .md-checkbox { color: #8b949e; font-family: monospace; margin-right: 4px; }
+        .md-checkbox.checked { color: var(--success); }
+
+        .explanation {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            line-height: 1.5;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 240px;
+            flex-shrink: 0;
+            transition: opacity 0.3s;
+        }
+
+        .explanation h4 {
+            margin: 0 0 8px 0;
+            color: var(--accent);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .flow-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            font-weight: 700;
+            background: rgba(79, 70, 229, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--accent);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .flow-indicator.show { opacity: 1; }
+
+        .container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            height: 250px;
+            perspective: 1000px;
+            margin-top: 20px;
+        }
+
+        .node {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            width: 115px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .node.active { opacity: 1; transform: translateY(0); }
+
+        .node-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+
+        .node-sub { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+
+        .file-badge {
+            font-size: 9px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 6px;
+            display: inline-block;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            transition: all 0.3s;
+            cursor: help;
+        }
+
+        .file-badge:hover { background: var(--success); color: #000; }
+
+        .file-badge.pulse {
+            background: var(--success);
+            color: #000;
+            box-shadow: 0 0 15px var(--success);
+        }
+
+        .arrow {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+            width: 0;
+            top: 50%;
+            left: 100%;
+            transform-origin: left;
+            z-index: -1;
+            transition: width 0.4s ease;
+        }
+
+        .arrow-head {
+            position: absolute;
+            right: 0;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 8px solid var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .active-glow {
+            animation: pulse-glow 2s infinite;
+            border-color: var(--accent) !important;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+
+        .command-box {
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--success);
+            opacity: 0;
+            transition: opacity 0.3s;
+            flex-grow: 1;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border-left: 3px solid var(--success);
+        }
+
+        .command-box.show { opacity: 1; }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--success);
+            margin-left: 4px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scene-container">
+        <div id="flow-tag" class="flow-indicator">Normal Flow</div>
+        
+        <div class="header">
+            <div class="command-box" id="commander">
+                <span style="color: #666">> </span><span id="command-text"></span><span class="cursor"></span>
+            </div>
+
+            <div class="explanation" id="explainer">
+                <h4>Context</h4>
+                <div id="explain-text">Ready to start. Click Play below to begin the workflow tour.</div>
+            </div>
+        </div>
+
+        <div class="preview-panel" id="previewer">
+            <div class="preview-header">
+                <div class="preview-filename" id="preview-filename">prd.md</div>
+                <div style="font-size: 10px; color: #8b949e;">Markdown View</div>
+            </div>
+            <div id="preview-content"></div>
+        </div>
+
+        <div class="container">
+            <div class="node" id="node-1">
+                <div class="node-title">Idea</div>
+                <div class="node-sub">Requirement</div>
+                <div class="arrow" id="arrow-1" style="width: 40px;"><div class="arrow-head" id="head-1"></div></div>
+            </div>
+
+            <div class="node" id="node-2">
+                <div class="node-title">@create-prd</div>
+                <div class="file-badge" id="badge-prd">prd.md</div>
+                <div class="arrow" id="arrow-2" style="width: 40px;"><div class="arrow-head" id="head-2"></div></div>
+            </div>
+
+            <div class="node" id="node-3">
+                <div class="node-title">Tasks</div>
+                <div class="file-badge" id="badge-tasks">tasks.md</div>
+                <div class="arrow" id="arrow-3" style="width: 40px;"><div class="arrow-head" id="head-3"></div></div>
+            </div>
+
+            <div class="node" id="node-4">
+                <div class="node-title">Plan</div>
+                <div class="file-badge" id="badge-progress">progress.md</div>
+                <div class="arrow" id="arrow-4" style="width: 40px;"><div class="arrow-head" id="head-4"></div></div>
+                <div class="label" id="plan-label">Saved Position</div>
+            </div>
+
+            <div class="node" id="node-5">
+                <div class="node-title">Implement</div>
+                <div class="node-sub">Code changes</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="btn-play">Play</button>
+            <button class="btn secondary" id="btn-reset">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        const commander = document.getElementById('commander');
+        const commandText = document.getElementById('command-text');
+        const flowTag = document.getElementById('flow-tag');
+        const progressBadge = document.getElementById('badge-progress');
+        const prdBadge = document.getElementById('badge-prd');
+        const tasksBadge = document.getElementById('badge-tasks');
+        const explainText = document.getElementById('explain-text');
+        const btnPlay = document.getElementById('btn-play');
+        const btnReset = document.getElementById('btn-reset');
+        const previewer = document.getElementById('previewer');
+        const previewContent = document.getElementById('preview-content');
+        const previewFilename = document.getElementById('preview-filename');
+
+        const mockups = {
+            'prd.md': `<span class="md-h1">Auth System</span>
+<span class="md-h2">Summary</span>
+<p>Implement secure JWT authentication for all internal APIs.</p>
+<span class="md-h2">Core Requirements</span>
+<div class="md-list">
+    <div class="md-item"><span class="md-bullet">•</span> <span>Secure login endpoint</span></div>
+    <div class="md-item"><span class="md-bullet">•</span> <span>Password hashing with <span class="md-code">bcrypt</span></span></div>
+    <div class="md-item"><span class="md-bullet">•</span> <span>Automated session cleanup</span></div>
+</div>`,
+
+            'tasks.md': `<span class="md-h1">Implementation Plan</span>
+<span class="md-h2">Phase 1: Core API</span>
+<div class="md-list">
+    <div class="md-item"><span class="md-bullet">•</span> <span class="md-checkbox">[ ]</span> <span>Set up Express server</span></div>
+    <div class="md-item"><span class="md-bullet">•</span> <span class="md-checkbox">[ ]</span> <span>Implement <span class="md-code">/login</span> endpoint</span></div>
+</div>
+<span class="md-h2">Phase 2: Database</span>
+<div class="md-list">
+    <div class="md-item"><span class="md-bullet">•</span> <span class="md-checkbox">[ ]</span> <span>Create User model</span></div>
+</div>`,
+
+            'progress.md': `<span class="md-h1">Progress Tracking</span>
+<div style="background: rgba(35, 134, 54, 0.1); padding: 12px; border-radius: 6px; border: 1px solid rgba(35, 134, 54, 0.4); margin-bottom: 16px;">
+    <span style="color: var(--success); font-weight: 600; font-size: 12px; text-transform: uppercase;">Current Position</span><br/>
+    <span style="font-size: 13px;">Cursor is at <span class="md-code">auth.controller.ts:45</span></span>
+</div>
+<span class="md-h2">Status</span>
+<div class="md-list">
+    <div class="md-item"><span class="md-bullet">•</span> <span class="md-checkbox checked">[x]</span> <span>Initial PRD generated</span></div>
+    <div class="md-item"><span class="md-bullet">•</span> <span class="md-checkbox checked">[x]</span> <span>Tasks expanded</span></div>
+    <div class="md-item"><span class="md-bullet">•</span> <span class="md-checkbox">[ ]</span> <span>Working on login logic...</span></div>
+</div>`
+        };
+
+        let isRunning = false;
+        let isPaused = false;
+
+        async function showPreview(filename, duration = 3000) {
+            previewFilename.textContent = filename;
+            previewContent.innerHTML = mockups[filename];
+            previewer.classList.add('show');
+            await wait(duration);
+            previewer.classList.remove('show');
+        }
+
+        async function wait(ms) {
+            let start = Date.now();
+            while (Date.now() - start < ms) {
+                if (isPaused) {
+                    await new Promise(r => setTimeout(r, 100));
+                    start += 100;
+                } else {
+                    await new Promise(r => setTimeout(r, 10));
+                }
+            }
+        }
+
+        async function typeCommand(text) {
+            commander.classList.add('show');
+            commandText.textContent = '';
+            for(let char of text) {
+                if (isPaused) await new Promise(r => {
+                    const check = setInterval(() => {
+                        if (!isPaused) { clearInterval(check); r(); }
+                    }, 100);
+                });
+                commandText.textContent += char;
+                await new Promise(r => setTimeout(r, 30));
+            }
+            await wait(600);
+            commander.classList.remove('show');
+        }
+
+        async function setExplain(text) {
+            explainText.style.opacity = 0;
+            await new Promise(r => setTimeout(r, 200));
+            explainText.textContent = text;
+            explainText.style.opacity = 1;
+        }
+
+        async function flashProgress(label = "Updated") {
+            const oldLabel = document.getElementById('plan-label').textContent;
+            document.getElementById('plan-label').textContent = label;
+            progressBadge.classList.add('pulse');
+            await wait(1000);
+            progressBadge.classList.remove('pulse');
+            document.getElementById('plan-label').textContent = oldLabel;
+        }
+
+        async function animate() {
+            const nodes = [1,2,3,4,5].map(i => document.getElementById(`node-${i}`));
+            const arrows = [1,2,3,4].map(i => document.getElementById(`arrow-${i}`));
+            const heads = [1,2,3,4].map(i => document.getElementById(`head-${i}`));
+
+            while(isRunning) {
+                // --- FLOW 1: NORMAL ---
+                await setExplain("Starting Normal flow. We begin with a fuzzy idea or requirement.");
+                flowTag.textContent = "Flow: Normal (Creation)";
+                flowTag.classList.add('show');
+                nodes.forEach(n => { n.classList.remove('active', 'active-glow'); n.style.opacity = "" });
+                arrows.forEach(a => a.style.width = '0');
+                heads.forEach(h => h.style.opacity = '0');
+
+                await wait(1000);
+                nodes[0].classList.add('active'); // Idea
+                
+                await setExplain("@create-prd transforms the idea into a structured PRD.");
+                await typeCommand("@create-prd auth-api");
+                arrows[0].style.width = "40px"; heads[0].style.opacity = "1";
+                await wait(200);
+                nodes[1].classList.add('active');
+                await showPreview('prd.md');
+
+                await setExplain("@generate-tasks creates the task list to define the execution path.");
+                await typeCommand("@generate-tasks");
+                arrows[1].style.width = "40px"; heads[1].style.opacity = "1";
+                await wait(200);
+                nodes[2].classList.add('active');
+                await showPreview('tasks.md');
+
+                await setExplain("It also creates progress.md to track LIVE implementation state.");
+                arrows[2].style.width = "40px"; heads[2].style.opacity = "1";
+                await wait(200);
+                nodes[3].classList.add('active');
+                await flashProgress("Plan Initialized");
+                await showPreview('progress.md');
+
+                await setExplain("Now we implement. Notice how progress.md becomes the 'active' anchor.");
+                arrows[3].style.width = "40px"; heads[3].style.opacity = "1";
+                await wait(200);
+                nodes[4].classList.add('active');
+                
+                await wait(3000);
+
+                // --- FLOW 2: PAUSE ---
+                await setExplain("Stopping mid-task. @pause updates the 'Position' in progress.md.");
+                flowTag.textContent = "Flow: Pause (Saving)";
+                nodes[4].classList.add('active-glow');
+                await typeCommand("@pause \"implementing login hash\"");
+                await showPreview('progress.md', 2000);
+                await flashProgress("Position Saved");
+                nodes[4].classList.remove('active-glow');
+                
+                await wait(3000);
+
+                // --- FLOW 3: RESUME ---
+                await setExplain("Coming back. @resume reads progress.md to restore your flow instantly.");
+                flowTag.textContent = "Flow: Resume (Restoring)";
+                nodes.forEach(n => n.style.opacity = "0.3");
+                nodes[3].style.opacity = "1";
+                
+                await typeCommand("@resume");
+                await showPreview('progress.md', 2000);
+                await flashProgress("Context Loaded");
+                
+                nodes.forEach(n => n.style.opacity = "1");
+                nodes[4].classList.add('active-glow');
+                await setExplain("Flow restored! You are back at the exact line you left off.");
+                await wait(5000);
+            }
+        }
+
+        // Manual view
+        [prdBadge, tasksBadge, progressBadge].forEach(badge => {
+            badge.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showPreview(badge.textContent, 5000);
+            });
+        });
+
+        btnPlay.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                btnPlay.textContent = "Pause";
+                animate();
+            } else {
+                isPaused = !isPaused;
+                btnPlay.textContent = isPaused ? "Resume" : "Pause";
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
