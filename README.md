@@ -67,6 +67,7 @@ eval/     Evaluation harness for skills
 
 ---
 
-**Author:** Minh Tran — [@minhtran3124](https://github.com/minhtran3124)
+**Author:** Minh Tran — [@minhtran3124](https://github.com/minhtran3124)  
+**License:** [MIT](LICENSE)
 
 Have an idea for a new rule or skill? See [CONTRIBUTE.md](CONTRIBUTE.md).
